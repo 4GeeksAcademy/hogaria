@@ -19,4 +19,13 @@ def handle_hello():
         "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
     }
 
+@api.route("/api/search")
+def search():
+    q = request.args.get("q", "")                       #Recoge los filtros de búsqueda
+    category = request.args.get("category_id")
+    city = request.args.get("city_id")
+
+
+    query = db.session.query(Professional).join(Service)
+
     return jsonify(response_body), 200

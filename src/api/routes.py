@@ -5,6 +5,9 @@ from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
+from flask_jwt_extended import create_access_token
+from sqlalchemy import select
+from api import db
 
 api = Blueprint('api', __name__)
 
@@ -20,3 +23,32 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+#DESDE AQUI EMPECE.
+
+
+@api.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"msg": "Email y password son requeridos"}), 400
+
+    user = db.session.execute(
+        select(User).where(User.email == email)
+    ).scalar_one_or_none()
+
+    if not user or not user.check_password(password):
+        return jsonify({"msg": "Credenciales inválidas"}), 401
+
+    access_token = create_access_token(identity=user.id)
+
+    return jsonify({
+        "access_token": access_token,
+        "user": {
+            "id": user.id,
+            "email": user.email
+        }
+    }), 200

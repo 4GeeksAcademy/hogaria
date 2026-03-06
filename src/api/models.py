@@ -4,13 +4,25 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
+service_city = Table(
+    "service_city",
+    db.metadata,
+    Column("city_id", ForeignKey("city.id")),
+    Column("service_id", ForeignKey("service.id"))
+)
+
+
+
 class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-
+    firstname: Mapped[str] = mapped_column(nullable=False)
+    lastname: Mapped[str] = mapped_column(nullable=False)
+    phone: Mapped[str] = mapped_column(nullable=False)
+    opinions: Mapped[list["Opinion"]] = relationship("Opinion", back_populates="author")
+    history: Mapped[list["Service"]] = relationship("Service", back_populates="user")
 
     def serialize(self):
         return {

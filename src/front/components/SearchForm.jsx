@@ -1,27 +1,36 @@
+// Importa los hooks de React necesarios
 import { useState, useEffect } from "react";
 
+// SearchForm: Formulario de búsqueda con filtros de servicio y ciudad.
+// Recibe la función onSearch como prop, que se ejecuta al enviar el formulario.
 export const SearchForm = ({ onSearch }) => {
+
+  // Estado local para los filtros del formulario
   const [filters, setFilters] = useState({
-    q: "",
-    service_id: "",
-    city_id: "",
+    q: "",           // Texto de búsqueda
+    service_id: "",  // ID del servicio seleccionado
+    city_id: "",     // ID de la ciudad seleccionada
   });
 
-  const [services, setServices] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [loadingOptions, setLoadingOptions] = useState(false);
 
-  // Fetch services and cities on component mount
+  // Estados para las opciones de los selects
+  const [services, setServices] = useState([]); // Lista de servicios
+  const [cities, setCities] = useState([]);     // Lista de ciudades
+  const [loadingOptions, setLoadingOptions] = useState(false); // Indica si se están cargando las opciones
+
+
+  // useEffect: Al montar el componente, carga los servicios y ciudades desde la API
   useEffect(() => {
     const fetchOptions = async () => {
       setLoadingOptions(true);
       try {
-        // Try to fetch real data from API
+        // Intenta obtener los datos reales de la API
         const [servicesRes, citiesRes] = await Promise.all([
           fetch("/api/services"),
           fetch("/api/cities"),
         ]);
 
+        // Si la respuesta es correcta, guarda los datos en el estado
         if (servicesRes.ok) {
           const servicesData = await servicesRes.json();
           setServices(servicesData);
@@ -32,8 +41,8 @@ export const SearchForm = ({ onSearch }) => {
           setCities(citiesData);
         }
       } catch (error) {
+        // Si falla la API, usa datos de ejemplo (mock)
         console.error("Error fetching filters:", error);
-        // If API not available yet, use placeholder data
         setServices([
           { id: 1, nombre: "Plomería", categoria: "Oficios" },
           { id: 2, nombre: "Electricidad", categoria: "Oficios" },
@@ -50,8 +59,10 @@ export const SearchForm = ({ onSearch }) => {
     };
 
     fetchOptions();
-  }, []);
+  }, []); // Solo se ejecuta una vez al montar
 
+
+  // handleChange: Actualiza el estado de los filtros cuando el usuario escribe o selecciona algo
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFilters((prev) => ({
@@ -60,15 +71,18 @@ export const SearchForm = ({ onSearch }) => {
     }));
   };
 
+
+  // handleSubmit: Llama a la función onSearch del padre con los filtros actuales
   const handleSubmit = (e) => {
     e.preventDefault();
     onSearch(filters);
   };
 
+  // Render del formulario
   return (
     <form onSubmit={handleSubmit} className="card p-4 mb-4">
       <div className="row g-3">
-        {/* Search input */}
+        {/* Input de texto para búsqueda */}
         <div className="col-md-4">
           <label htmlFor="q" className="form-label">
             Buscar por nombre o usuario
@@ -84,7 +98,7 @@ export const SearchForm = ({ onSearch }) => {
           />
         </div>
 
-        {/* Service filter */}
+        {/* Select de servicios */}
         <div className="col-md-4">
           <label htmlFor="service_id" className="form-label">
             Servicio
@@ -105,7 +119,7 @@ export const SearchForm = ({ onSearch }) => {
           </select>
         </div>
 
-        {/* City filter */}
+        {/* Select de ciudades */}
         <div className="col-md-4">
           <label htmlFor="city_id" className="form-label">
             Ciudad
@@ -127,7 +141,7 @@ export const SearchForm = ({ onSearch }) => {
         </div>
       </div>
 
-      {/* Submit button */}
+      {/* Botón de enviar */}
       <div className="row mt-3">
         <div className="col-12">
           <button type="submit" className="btn btn-primary w-100">

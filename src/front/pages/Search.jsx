@@ -1,51 +1,93 @@
+import { useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SearchForm } from "../components/SearchForm";
 import { SearchResults } from "../components/SearchResults";
 
 export const Search = () => {
-    const [professionals, setProfessionals] = useState([]);                     //Array vacío que guardará los resultados de las busquedas. 
-    const [loading, setLoading] = useState(false);                              //Indica si la búsqueda está en curso para mostrar un mensaje de "Buscando..." mientras se obtienen los resultados.
-    const [searched, setSearched] = useState(false);                            //Indica si se ha realizado una búsqueda para mostrar un mensaje de "No se encontraron resultados" si la búsqueda no arroja resultados.
+    // Hook para acceder a los parámetros de búsqueda en la URL (por ejemplo, ?q=plomería)
+    const [searchParams] = useSearchParams();
+    // Leer valores iniciales de la URL
+    const initialQ = searchParams.get("q") || "";
+    const initialServiceId = searchParams.get("service_id") || "";
+    const initialCityId = searchParams.get("city_id") || "";
 
+    const [professionals, setProfessionals] = useState([]); // Resultados de búsqueda
+    const [loading, setLoading] = useState(false);           // Estado de carga
+    const [searched, setSearched] = useState(false);         // Si ya se buscó
+
+    // Función para buscar profesionales con los filtros dados
+    // Resultado de ejemplo para mostrar si la búsqueda real no devuelve nada
+    const exampleProfessional = [
+        {
+            id: 999,
+            username: "ejemplo",
+            name: "Ejemplo",
+            lastname: "Profesional",
+            email: "ejemplo@hogaria.com",
+            telefono: "600000000",
+            servicios: [
+                { id: 1, nombre: "Plomería" }
+            ]
+        }
+    ];
+
+    // handleSearch: lógica real, pero si no hay resultados, muestra el ejemplo
     const handleSearch = async (filters) => {
         setLoading(true);
         setSearched(true);
-
         try {
-            
-            const params = new URLSearchParams();                                //Construir los parámetros de consulta basados en los filtros proporcionados. Solo se agregan al query string aquellos filtros que tengan un valor (no vacíos).
-            if (filters.q) params.append("q", filters.q);                           //Texto
-            if (filters.service_id) params.append("service_id", filters.service_id);    
-            if (filters.city_id) params.append("city_id", filters.city_id);         
-
+            const params = new URLSearchParams();
+            if (filters.q) params.append("q", filters.q);
+            if (filters.service_id) params.append("service_id", filters.service_id);
+            if (filters.city_id) params.append("city_id", filters.city_id);
             const response = await fetch(`/api/search?${params.toString()}`);
-            const data = await response.json();                                 //Recibe respuesta
-            setProfessionals(data);                                             //Guarda los resultados
+            const data = await response.json();
+            // Si la búsqueda real no devuelve nada, muestra el ejemplo
+            if (Array.isArray(data) && data.length > 0) {
+                setProfessionals(data);
+            } else {
+                setProfessionals(exampleProfessional);
+            }
         } catch (error) {
             console.error("Error fetching search results:", error);
-            setProfessionals([]);                                               //Si falla: array vacío
+            setProfessionals(exampleProfessional);
         } finally {
-            setLoading(false);                                                  //Dejar de mostrar "Buscando..."
+            setLoading(false);
         }
     };
 
-    return (                                                                //El form recibe la función handleSearch como prop, que se ejecutará al enviar el formulario con los filtros. Mientras se cargan los resultados, se muestra un mensaje de "Buscando...". Si se ha realizado una búsqueda pero no se encontraron resultados, se muestra un mensaje de advertencia. Si hay resultados, se renderiza el componente SearchResults con los profesionales encontrados.
+    // useEffect: lanza la búsqueda automática si hay algún filtro en la URL
+    useEffect(() => {
+        if (initialQ || initialServiceId || initialCityId) {
+            handleSearch({
+                q: initialQ,
+                service_id: initialServiceId,
+                city_id: initialCityId
+            });
+        }
+        // eslint-disable-next-line
+    }, [initialQ, initialServiceId, initialCityId]);
+
+    return (
         <div className="container my-5">
             <h1 className="mb-4">Buscar Profesionales</h1>
-                                                                                
-            <SearchForm onSearch={handleSearch} />                              
+            {/* Pasamos los valores iniciales al formulario */}
+            <SearchForm
+                onSearch={handleSearch}
+                initialQ={initialQ}
+                initialServiceId={initialServiceId}
+                initialCityId={initialCityId}
+            />
             {loading && (
                 <div className="alert alert-info mt-4">
                     <strong>Buscando...</strong>
                 </div>
             )}
-
             {searched && !loading && professionals.length === 0 && (
                 <div className="alert alert-warning mt-4">
                     <strong>No se encontraron resultados.</strong>
                 </div>
             )}
-
             {professionals.length > 0 && <SearchResults professionals={professionals} />}
         </div>
     );

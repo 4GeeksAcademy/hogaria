@@ -36,7 +36,7 @@ export const Login = () => {
           <div className="input-group">
             <input
               type="email"
-              placeholder="Username"
+              placeholder="Email"
               value={user.email}
               onChange={(e) =>
                 setUser({ ...user, email: e.target.value })
@@ -70,7 +70,7 @@ export const Login = () => {
         </form>
 
         <p className="signup">
-          New here? <span>Sign Up</span>
+          New here? <span onClick={() => navigate("/register/")}>Register</span>
         </p>
       </div>
     </div>

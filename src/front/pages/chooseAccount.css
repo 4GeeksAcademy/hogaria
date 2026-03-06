@@ -1,0 +1,51 @@
+.choose-container{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:#1e3a8a;
+}
+
+.choose-title{
+  color:white;
+  margin-bottom:40px;
+}
+
+.choose-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+}
+
+.choose-card{
+  width:280px;
+  background:white;
+  padding:40px 30px;
+  border-radius:15px;
+  text-align:center;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.choose-card:hover{
+  transform:translateY(-8px);
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+.choose-card h2{
+  margin-bottom:15px;
+}
+
+.choose-card p{
+  font-size:14px;
+  margin-bottom:20px;
+}
+
+.choose-card button{
+  background:#10b981;
+  border:none;
+  padding:10px 20px;
+  border-radius:8px;
+  color:white;
+}

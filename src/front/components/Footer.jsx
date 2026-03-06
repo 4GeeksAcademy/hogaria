@@ -13,7 +13,7 @@ export const Footer = () => {
           </p>
         </div>
 
-        <div className="footer-column">
+        <div className="services-menu">
           <h4>Servicios</h4>
           <ul>
             <li>Fontanería</li>
@@ -21,6 +21,9 @@ export const Footer = () => {
             <li>Cerrajería</li>
             <li>Reformas</li>
             <li>Limpieza</li>
+            <li>Climatizacion</li>
+            <li>Mudanzas</li> 
+            <li>Pintura</li>
           </ul>
         </div>
 

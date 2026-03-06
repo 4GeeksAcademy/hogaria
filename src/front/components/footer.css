@@ -40,3 +40,10 @@
   padding-top: 20px;
   font-size: 14px;
 }
+.services-menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 40px;
+  list-style: none;
+  padding: 5px;
+}

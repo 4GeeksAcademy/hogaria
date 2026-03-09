@@ -1,6 +1,7 @@
 import React, { useEffect } from "react"
 import rigoImageUrl from "../assets/img/rigo-baby.jpg";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
+import { useNavigate } from "react-router-dom"
 import "./Home.css";
 import fontaneria from "../assets/img/fontaneria.png";
 import electricidad from "../assets/img/electricidad.png";
@@ -11,8 +12,13 @@ import limpieza from "../assets/img/limpieza.png";
 import mudanza from "../assets/img/mudanza.png";
 import pintura from "../assets/img/pintura.png";
 import comercios from "../assets/img/comercios.png";
+import atencion from "../assets/img/atencion.png";
+import valoracion from "../assets/img/valoracion.png";
+
+
 
 const services = [
+
   {
     id: 1,
     title: "Fontanería",
@@ -70,7 +76,9 @@ const services = [
 ];
 
 export const Home = () => {
+  const navigate = useNavigate()
   return (
+
     <div className="Home-Principal">
       <div className="home-container">
         <h1 className="home-title">
@@ -87,13 +95,36 @@ export const Home = () => {
               <div className="service-icon">{service.icon}</div>
               <h3>{service.title}</h3>
               <p>{service.description}</p>
-              <button className="service-btn">
+              <button
+                className="service-btn"
+                onClick={() => navigate(`/services/${service.title.toLowerCase()}`)}
+              >
                 Ver más
               </button>
             </div>
           ))}
         </div>
+        <div className="home-extra">
+          <div
+            className="extra-card"
+            onClick={() => navigate("/support")}
+          >
+            <div className="Atencion"><img src={atencion} alt="Atención al Cliente" /></div>
+            <h3>Atención al Cliente</h3>
+          </div>
+
+          <div
+            className="extra-card"
+            onClick={() => navigate("/review")}
+          >
+            <div className="valoracion"><img src={valoracion} alt="Valorar Servicio" /></div>
+            <h3>Valorar Servicio</h3>
+          </div>
+        </div>
       </div>
     </div>
+
+
+
   );
 };

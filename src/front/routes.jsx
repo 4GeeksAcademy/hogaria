@@ -14,6 +14,8 @@ import { Login } from "./pages/Login";
 import { ChooseAccount } from "./pages/ChooseAccount"
 import { RegisterUser } from "./pages/RegisterUser"
 import { RegisterCompany } from "./pages/RegisterCompany"
+import { CustomerSupport } from "./pages/CustomerSupport"
+import { Review } from "./pages/Review"
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -35,6 +37,8 @@ export const router = createBrowserRouter(
       <Route path="/register" element={<ChooseAccount />} />
       <Route path="/register/user" element={<RegisterUser />} />
       <Route path="/register/company" element={<RegisterCompany />} />
+      <Route path="/support" element={<CustomerSupport />} />
+      <Route path="/review" element={<Review />} />
     </Route>
 
    

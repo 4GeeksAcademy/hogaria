@@ -51,7 +51,7 @@ export const Navbar = () => {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            <button className="btn btn-outline-success" type="submit">
+            <button className="register-btn" type="submit">
               Buscar
             </button>
           </form>

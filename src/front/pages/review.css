@@ -1,0 +1,28 @@
+.review-container{
+  max-width:600px;
+  margin:60px auto;
+  text-align:center;
+}
+
+.review-form{
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+  margin-top:20px;
+}
+
+.review-form select,
+.review-form textarea{
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+.review-form button{
+  background:#10b981;
+  border:none;
+  padding:12px;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+}

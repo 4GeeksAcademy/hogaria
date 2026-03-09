@@ -19,6 +19,7 @@ export const Login = () => {
       const data = await login(user);
 
       localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user_id", data.user.id);
 
       navigate("/");
     } catch (error) {

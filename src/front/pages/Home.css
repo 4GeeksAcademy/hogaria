@@ -1,0 +1,186 @@
+.home-container {
+  background: #1e3a8a;
+  max-width: 1200px;
+  margin: auto;
+  padding: 60px 20px;
+  text-align: center;
+  min-height: 100vh;
+}
+
+.home-title {
+  font-size: 32px;
+  margin-bottom: 50px;
+  color: #ebebeb;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+.service-card {
+  background: #ebebeb;
+  padding: 30px 20px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+  transition: 0.3s;
+}
+
+.service-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+}
+
+.service-icon {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.service-card h3 {
+  margin-bottom: 10px;
+  color: #0f172a;
+}
+
+.service-card p {
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #64748b;
+}
+
+.service-btn {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  background: #10b981;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.service-btn:hover {
+  background: #059669;
+}
+.Home-Principal {
+  background: #1e3a8a;
+}
+
+.fontaneria img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.electricidad img {
+  width: 68px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.cerrajeria img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.reformas img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.climatizacion img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.limpieza img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.mudanza img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.pintura img {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 15px;
+}
+.comercios img {
+  width: 80px;
+  height: 100px;
+  margin-bottom: 15px;
+}
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+.commerce-card {
+  grid-column: 2 / span 2;
+  border: 2px solid #10b981;
+  transform: scale(1.02);
+}
+
+@media (max-width: 992px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .commerce-card {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commerce-card {
+    grid-column: span 1;
+  }
+}
+.home-extra{
+  margin-top:60px;
+  display:flex;
+  justify-content:center;
+  gap:25px;
+}
+
+.extra-card{
+  width:180px;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  transition:0.3s;
+  background:white;
+}
+
+.extra-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 12px 25px rgba(0,0,0,0.12);
+}
+
+.extra-card h3{
+  font-size:14px;
+  margin-bottom:5px;
+}
+
+.extra-card p{
+  font-size:12px;
+  color:#64748b;
+}
+.Atencion img { 
+  width: 30px;
+  height: 30px;
+  margin-bottom: 15px;
+
+}
+.valoracion img{
+  width: 30px;
+  height: 30px;
+  margin-bottom: 15px;
+}

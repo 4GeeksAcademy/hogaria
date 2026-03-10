@@ -45,7 +45,7 @@ export const Navbar = () => {
           </div>
           <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220 }}>
             <input
-              className="form-control me-2"
+              className="form-control me-3"
               type="search"
               placeholder="Buscar..."
               value={query}

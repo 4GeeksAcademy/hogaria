@@ -8,6 +8,10 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token
 from sqlalchemy import select
 from api.models import Service, City
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from flask import request, jsonify
+from flask_jwt_extended import create_access_token
 
 api = Blueprint('api', __name__)
 
@@ -68,7 +72,7 @@ def search():
         results.append(user_data)
 
     return jsonify(results), 200
-  
+
 
 # Endpoint mock para servicios
 
@@ -124,3 +128,42 @@ def login():
             "email": user.email
         }
     }), 200
+
+
+@api.route("/google-login", methods=["POST"])
+def google_login():
+
+    token = request.json.get("token")
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            "TU_CLIENT_ID_DE_GOOGLE"
+        )
+
+        email = idinfo["email"]
+        name = idinfo.get("name")
+
+        # buscar usuario en la base de datos
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            user = User(
+                email=email
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        access_token = create_access_token(identity=user.id)
+
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "email": email,
+                "name": name
+            }
+        }), 200
+
+    except ValueError:
+        return jsonify({"msg": "Invalid Google token"}), 401

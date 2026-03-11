@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Enum, Float, Integer, Column, ForeignKey, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from flask_bcrypt import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -16,7 +17,7 @@ service_city = Table(
 class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(nullable=False)
+    password_hash: Mapped[str] = mapped_column(nullable=False)
     firstname: Mapped[str] = mapped_column(nullable=False)
     lastname: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
@@ -34,11 +35,17 @@ class User(db.Model):
             "history": self.history
         }
     
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+       return check_password_hash(self.password_hash, password)
+    
     
 class Company(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(nullable=False)
+    password_hash: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
     rate: Mapped[float] = mapped_column(nullable=True)
@@ -55,6 +62,10 @@ class Company(db.Model):
             "opinions": self.opinions,
             "services": self.services
         }
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+    def check_password(self, password):
+       return check_password_hash(self.password_hash, password)
     
 class City(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)

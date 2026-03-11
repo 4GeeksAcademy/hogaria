@@ -12,6 +12,8 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from flask import request, jsonify
 from flask_jwt_extended import create_access_token
+from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType
+
 
 api = Blueprint('api', __name__)
 
@@ -27,7 +29,7 @@ def handle_hello():
     }
 
 
-@api.route("/api/search")
+@api.route("/search")
 def search():
     q = request.args.get("q", "")
     service_id = request.args.get("service_id")
@@ -74,10 +76,11 @@ def search():
     return jsonify(results), 200
 
 
+
 # Endpoint mock para servicios
 
 
-@api.route("/api/services")
+@api.route("/services")
 def get_services():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
     services = [
@@ -90,7 +93,7 @@ def get_services():
 # Endpoint mock para ciudades
 
 
-@api.route("/api/cities")
+@api.route("/cities")
 def get_cities():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
     cities = [
@@ -167,3 +170,259 @@ def google_login():
 
     except ValueError:
         return jsonify({"msg": "Invalid Google token"}), 401
+
+
+@api.route("/profile", methods=["GET"])
+def get_profile():
+    user_id = request.args.get("user_id", type=int)
+
+    if not user_id:
+        return jsonify({"msg": "user_id es requerido"}), 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    return jsonify(user.serialize()), 200
+
+
+@api.route('/user/profile', methods=['PUT'])
+def update_user_profile():
+    "Actualizar perfil del usuario"
+
+    data = request.json
+    user_id = request.args.get('user_id', type=int)
+
+    if not user_id:
+        return jsonify({"error": "user_id requerido"}), 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    # Actualizar campos
+    user.name = data.get('name', user.name)
+    user.phone = data.get('phone', user.phone)
+    user.email = data.get('email', user.email)
+    user.avatar = data.get('avatar', user.avatar)
+
+    db.session.commit()
+    return jsonify(user.serialize()), 200
+
+
+@api.route('/user/change-password', methods=['POST'])
+def change_password():
+
+    data = request.json
+    user_id = request.args.get('user_id', type=int)
+
+    if not user_id:
+        return jsonify({"error": "user_id requerido"}), 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+     # Validar contraseña actual con hash
+
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+
+    if not current_password or not new_password:
+        return jsonify({"error": "Contraseña actual y nueva requeridas"}), 400
+
+    # Implementar hash de contraseña
+    user.password = new_password
+    db.session.commit()
+
+    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+
+
+@api.route('/user/bookings', methods=['GET'])
+def get_user_bookings():
+    "Obtener todas las reservas del usuario"
+
+    user_id = request.args.get('user_id', type=int)
+
+    if not user_id:
+        return jsonify({"error": "user_id requerido"}), 400
+
+    bookings = Booking.query.filter_by(user_id=user_id).all()
+    return jsonify([booking.serialize() for booking in bookings]), 200
+
+
+@api.route('/user/bookings', methods=['POST'])
+def create_booking():
+    "Crear una nueva reserva"
+    data = request.json
+    user_id = request.args.get('user_id', type=int)
+
+    if not user_id:
+        return jsonify({"error": "user_id requerido"}), 400
+
+    # Validar datos requeridos
+    required_fields = ['service_name', 'date', 'price']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Campo '{field}' requerido"}), 400
+
+    booking = Booking(
+        user_id=user_id,
+        service_name=data.get('service_name'),
+        description=data.get('description'),
+        date=data.get('date'),
+        price=data.get('price'),
+        status=BookingStatus.PENDING
+    )
+
+    db.session.add(booking)
+    db.session.commit()
+
+    return jsonify(booking.serialize()), 201
+
+
+@api.route('/user/bookings/<int:booking_id>', methods=['GET'])
+def get_booking(booking_id):
+    "Obtener detalles de una reserva específica"
+
+    booking = Booking.query.get(booking_id)
+    if not booking:
+        return jsonify({"error": "Reserva no encontrada"}), 404
+
+    return jsonify(booking.serialize()), 200
+
+
+@api.route('/user/bookings/<int:booking_id>', methods=['PUT'])
+def update_booking(booking_id):
+    "Actualizar una reserva"
+
+    data = request.json
+    booking = Booking.query.get(booking_id)
+
+    if not booking:
+        return jsonify({"error": "Reserva no encontrada"}), 404
+
+    booking.service_name = data.get('service_name', booking.service_name)
+    booking.description = data.get('description', booking.description)
+    booking.date = data.get('date', booking.date)
+    booking.price = data.get('price', booking.price)
+    booking.status = BookingStatus(data.get('status', booking.status.value))
+
+    db.session.commit()
+    return jsonify(booking.serialize()), 200
+
+
+@api.route('/user/bookings/<int:booking_id>', methods=['DELETE'])
+def delete_booking(booking_id):
+    """Cancelar/Eliminar una reserva"""
+    booking = Booking.query.get(booking_id)
+    if not booking:
+        return jsonify({"error": "Reserva no encontrada"}), 404
+
+    # Cambiar estado a CANCELLED en lugar de eliminar
+    booking.status = BookingStatus.CANCELLED
+    db.session.commit()
+
+    return jsonify({"message": "Reserva cancelada"}), 200
+
+
+@api.route('/user/payment-methods', methods=['GET'])
+def get_payment_methods():
+    """Obtener métodos de pago del usuario"""
+    user_id = request.args.get('user_id', type=int)
+
+    if not user_id:
+        return jsonify({"error": "user_id requerido"}), 400
+
+    methods = PaymentMethod.query.filter_by(user_id=user_id).all()
+    return jsonify([method.serialize() for method in methods]), 200
+
+
+@api.route('/user/payment-methods', methods=['POST'])
+def create_payment_method():
+    """Crear un nuevo método de pago"""
+    data = request.json
+    user_id = request.args.get('user_id', type=int)
+
+    if not user_id:
+        return jsonify({"error": "user_id requerido"}), 400
+
+    # Validar datos
+    required_fields = ['type', 'holder_name']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Campo '{field}' requerido"}), 400
+
+    payment_method = PaymentMethod(
+        user_id=user_id,
+        type=PaymentMethodType(data.get('type')),
+        last_four=data.get('last_four'),
+        holder_name=data.get('holder_name'),
+        is_default=data.get('is_default', False)
+    )
+
+    db.session.add(payment_method)
+    db.session.commit()
+
+    return jsonify(payment_method.serialize()), 201
+
+
+@api.route('/user/payment-methods/<int:method_id>', methods=['PUT'])
+def update_payment_method(method_id):
+    """Actualizar un método de pago"""
+    data = request.json
+    method = PaymentMethod.query.get(method_id)
+
+    if not method:
+        return jsonify({"error": "Método de pago no encontrado"}), 404
+
+    method.holder_name = data.get('holder_name', method.holder_name)
+    method.is_default = data.get('is_default', method.is_default)
+
+    db.session.commit()
+    return jsonify(method.serialize()), 200
+
+
+@api.route('/user/payment-methods/<int:method_id>', methods=['DELETE'])
+def delete_payment_method(method_id):
+    """Eliminar un método de pago"""
+    method = PaymentMethod.query.get(method_id)
+    if not method:
+        return jsonify({"error": "Método de pago no encontrado"}), 404
+
+    db.session.delete(method)
+    db.session.commit()
+
+    return jsonify({"message": "Método de pago eliminado"}), 200
+
+
+# ENDPOINTS DE NOTIFICACIONES
+
+@api.route('/user/notifications', methods=['GET'])
+def get_notifications():
+    """Obtener notificaciones del usuario"""
+    user_id = request.args.get('user_id', type=int)
+    is_read = request.args.get('is_read', type=bool)
+
+    if not user_id:
+        return jsonify({"error": "user_id requerido"}), 400
+
+    query = Notification.query.filter_by(user_id=user_id)
+
+    if is_read is not None:
+        query = query.filter_by(is_read=is_read)
+
+    notifications = query.order_by(Notification.created_at.desc()).all()
+    return jsonify([notif.serialize() for notif in notifications]), 200
+
+
+@api.route('/user/notifications/<int:notification_id>', methods=['PUT'])
+def mark_notification_read(notification_id):
+    "Marcar notificación como leída"
+    notification = Notification.query.get(notification_id)
+    if not notification:
+        return jsonify({"error": "Notificación no encontrada"}), 404
+
+    notification.is_read = True
+    db.session.commit()
+
+    return jsonify(notification.serialize()), 200

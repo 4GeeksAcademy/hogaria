@@ -1,6 +1,8 @@
+import enum
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Enum, Float, Integer, Column, ForeignKey, Table
+from sqlalchemy import String, Boolean, Enum as SQLEnum, Float, Integer, Column, ForeignKey, Table, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -24,6 +26,10 @@ class User(db.Model):
         "Opinion", back_populates="author")
     history: Mapped[list["Service"]] = relationship(
         "Service", back_populates="user")
+    opinions: Mapped[list["Opinion"]] = relationship(
+        "Opinion", back_populates="author")
+    history: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="user")
 
     def serialize(self):
         return {
@@ -37,14 +43,22 @@ class User(db.Model):
         }
 
 
+
+
 class Company(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
     rate: Mapped[float] = mapped_column(nullable=True)
+    opinions: Mapped[list["Opinion"]] = relationship(
+        "Opinion", back_populates="company")
+    services: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="company")
     opinions: Mapped[list["Opinion"]] = relationship(
         "Opinion", back_populates="company")
     services: Mapped[list["Service"]] = relationship(
@@ -62,9 +76,13 @@ class Company(db.Model):
         }
 
 
+
+
 class City(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
+    services: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="city")
     services: Mapped[list["Service"]] = relationship(
         "Service", back_populates="city")
 
@@ -76,12 +94,16 @@ class City(db.Model):
         }
 
 
+
+
 class Service(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    category: Mapped[enumerate] = mapped_column(Enum(
+    category: Mapped[str] = mapped_column(SQLEnum(
         'Transport', 'Accommodation', 'Food', 'House', name='category_enum'), nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     city_id: Mapped[int] = mapped_column(ForeignKey("city.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("company.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
         ForeignKey("company.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
@@ -89,6 +111,8 @@ class Service(db.Model):
     all_day: Mapped[bool] = mapped_column(nullable=False)
     price: Mapped[float] = mapped_column(nullable=False)
     city: Mapped["City"] = relationship("City", back_populates="services")
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="services")
     company: Mapped["Company"] = relationship(
         "Company", back_populates="services")
     user: Mapped["User"] = relationship("User", back_populates="history")
@@ -105,14 +129,20 @@ class Service(db.Model):
         }
 
 
+
+
 class Opinion(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
         ForeignKey("company.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("company.id"), nullable=False)
     rating: Mapped[float] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(nullable=True)
     author: Mapped["User"] = relationship("User", back_populates="opinions")
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="opinions")
     company: Mapped["Company"] = relationship(
         "Company", back_populates="opinions")
 
@@ -123,4 +153,114 @@ class Opinion(db.Model):
             "company_id": self.company_id,
             "rating": self.rating,
             "comment": self.comment
+        }
+
+# Modelos de la Página Perfil del Usuario
+
+
+class UserProfile(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user.id"), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
+    phone: Mapped[str] = mapped_column(nullable=False)
+    avatar: Mapped[str] = mapped_column(nullable=True)
+
+    user: Mapped["User"] = relationship("User")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "name": self.name,
+            "email": self.email,
+            "phone": self.phone,
+            "avatar": self.avatar,
+        }
+
+
+class BookingStatus(enum.Enum):
+    PENDING = "pending"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class PaymentMethodType(enum.Enum):
+    CREDIT_CARD = "credit_card"
+    DEBIT_CARD = "debit_card"
+    PAYPAL = "paypal"
+    BANK_TRANSFER = "bank_transfer"
+
+
+class Booking(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    service_name: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    description: Mapped[str] = mapped_column(Text, nullable=True)
+    date: Mapped[str] = mapped_column(String(50), nullable=False)
+    status: Mapped[BookingStatus] = mapped_column(
+        SQLEnum(BookingStatus), default=BookingStatus.PENDING, nullable=False)
+    price: Mapped[float] = mapped_column(Float, nullable=False)
+
+    user: Mapped["User"] = relationship("User")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "service_name": self.service_name,
+            "description": self.description,
+            "date": self.date if isinstance(self.date, str) else self.date.isoformat(),
+            "status": self.status.value,
+            "price": self.price,
+        }
+
+
+class PaymentMethod(db.Model):
+    "Modelo de Métodos de Pago"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+
+    type: Mapped[PaymentMethodType] = mapped_column(
+        SQLEnum(PaymentMethodType), nullable=False)
+    last_four: Mapped[str] = mapped_column(String(4), nullable=True)
+    holder_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_default: Mapped[bool] = mapped_column(Boolean(), default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship("User")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "type": self.type.value,
+            "last_four": self.last_four,
+            "holder_name": self.holder_name,
+            "is_default": self.is_default,
+        }
+
+
+class Notification(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    is_read: Mapped[bool] = mapped_column(Boolean(), default=False)
+
+    user: Mapped["User"] = relationship("User")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "title": self.title,
+            "message": self.message,
+            "is_read": self.is_read,
         }

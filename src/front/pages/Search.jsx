@@ -17,19 +17,7 @@ export const Search = () => {
 
     // Función para buscar profesionales con los filtros dados
     // Resultado de ejemplo para mostrar si la búsqueda real no devuelve nada
-    const exampleProfessional = [
-        {
-            id: 999,
-            username: "ejemplo",
-            name: "Ejemplo",
-            lastname: "Profesional",
-            email: "ejemplo@hogaria.com",
-            telefono: "600000000",
-            servicios: [
-                { id: 1, nombre: "Plomería" }
-            ]
-        }
-    ];
+
 
     // handleSearch: lógica real, pero si no hay resultados, muestra el ejemplo
     const handleSearch = async (filters) => {

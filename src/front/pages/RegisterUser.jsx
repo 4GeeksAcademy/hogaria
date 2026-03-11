@@ -16,6 +16,8 @@ export const RegisterUser = () => {
     console.log(user)
   }
 
+
+
   return(
 
     <div className="login-container">
@@ -66,7 +68,7 @@ export const RegisterUser = () => {
             />
           </div>
 
-          <button className="login-btn">
+          <button className="login-btn" onClick={handleSubmit}>
             Crear cuenta
           </button>
 

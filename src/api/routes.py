@@ -139,7 +139,7 @@ def google_login():
         idinfo = id_token.verify_oauth2_token(
             token,
             requests.Request(),
-            "TU_CLIENT_ID_DE_GOOGLE"
+            "3815072650-c4055m3c1jvbe74af5jqve8clov2ib9t.apps.googleusercontent.com"
         )
 
         email = idinfo["email"]

@@ -1,0 +1,386 @@
+{
+  "info": {
+    "_postman_id": "d6bfeec7-ea1a-4b8d-aed7-4f6055fc1a40",
+    "name": "Hogaria - Rama paginaperfil",
+    "description": "Colección para validar endpoints añadidos en la rama paginaperfil.\n\nVariables de colección:\n- baseUrl: URL base del backend (ej. http://localhost:3001)\n- accessToken: se rellena automáticamente tras login\n- userId: ID de usuario para pruebas\n- bookingId: ID de reserva existente\n- methodId: ID de método de pago existente\n- notificationId: ID de notificación existente\n- serviceId: filtro opcional para search\n- cityId: filtro opcional para search\n\nChecklist sugerido por endpoint:\n- Verificar status HTTP esperado\n- Verificar estructura JSON\n- Verificar persistencia (GET después de POST/PUT/DELETE)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001" },
+    { "key": "accessToken", "value": "" },
+    { "key": "userId", "value": "1" },
+    { "key": "bookingId", "value": "1" },
+    { "key": "methodId", "value": "1" },
+    { "key": "notificationId", "value": "1" },
+    { "key": "serviceId", "value": "1" },
+    { "key": "cityId", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Search & Catálogos",
+      "item": [
+        {
+          "name": "GET /api/search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search?q=ana&service_id={{serviceId}}&city_id={{cityId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "search"],
+              "query": [
+                { "key": "q", "value": "ana" },
+                { "key": "service_id", "value": "{{serviceId}}" },
+                { "key": "city_id", "value": "{{cityId}}" }
+              ]
+            },
+            "description": "Comprobar 200 y que devuelve array de usuarios con campos id, username, name, lastname, email, telefono y servicios."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/services",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/services",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "services"]
+            },
+            "description": "Comprobar 200 y lista mock de servicios (id, nombre, categoria, ciudad_id)."
+          }
+        },
+        {
+          "name": "GET /api/cities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cities",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cities"]
+            },
+            "description": "Comprobar 200 y lista mock de ciudades (id, nombre)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth & Perfil",
+      "item": [
+        {
+          "name": "POST /api/login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "login"]
+            },
+            "description": "Comprobar 200 con access_token y user. Negativos: 400 sin campos, 401 credenciales inválidas."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data.access_token) {",
+                  "  pm.collectionVariables.set('accessToken', data.access_token);",
+                  "}",
+                  "if (data.user && data.user.id) {",
+                  "  pm.collectionVariables.set('userId', String(data.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/profile?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile"],
+              "query": [{ "key": "user_id", "value": "{{userId}}" }]
+            },
+            "description": "Comprobar 200 con datos del usuario. Negativos: 400 sin user_id, 404 usuario no encontrado."
+          }
+        },
+        {
+          "name": "PUT /api/user/profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nuevo Nombre\",\n  \"phone\": \"600123123\",\n  \"email\": \"nuevo@example.com\",\n  \"avatar\": \"https://example.com/avatar.png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"],
+              "query": [{ "key": "user_id", "value": "{{userId}}" }]
+            },
+            "description": "Comprobar actualización y respuesta 200. Si falla, revisar mapeo de campos name/firstname en backend."
+          }
+        },
+        {
+          "name": "POST /api/user/change-password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"123456\",\n  \"new_password\": \"12345678\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/change-password?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "change-password"],
+              "query": [{ "key": "user_id", "value": "{{userId}}" }]
+            },
+            "description": "Comprobar 200. Negativos: 400 si faltan current_password/new_password, 404 usuario inexistente."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "GET /api/user/bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/bookings?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "bookings"],
+              "query": [{ "key": "user_id", "value": "{{userId}}" }]
+            },
+            "description": "Comprobar 200 y array de reservas."
+          }
+        },
+        {
+          "name": "POST /api/user/bookings",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name\": \"Limpieza integral\",\n  \"description\": \"Piso de 90m2\",\n  \"date\": \"2026-03-20\",\n  \"price\": 85\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/bookings?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "bookings"],
+              "query": [{ "key": "user_id", "value": "{{userId}}" }]
+            },
+            "description": "Comprobar 201 y guardar id de la reserva para pruebas posteriores."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data.id) pm.collectionVariables.set('bookingId', String(data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /api/user/bookings/:booking_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "bookings", "{{bookingId}}"]
+            },
+            "description": "Comprobar 200 si existe; 404 si no."
+          }
+        },
+        {
+          "name": "PUT /api/user/bookings/:booking_id",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_name\": \"Limpieza premium\",\n  \"description\": \"Con ventanas\",\n  \"date\": \"2026-03-22\",\n  \"price\": 99,\n  \"status\": \"confirmed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "bookings", "{{bookingId}}"]
+            },
+            "description": "Comprobar 200 y estado actualizado. Estados válidos: pending, confirmed, completed, cancelled."
+          }
+        },
+        {
+          "name": "DELETE /api/user/bookings/:booking_id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "bookings", "{{bookingId}}"]
+            },
+            "description": "Comprobar 200 y mensaje de cancelación. Luego verificar con GET que la reserva queda en estado cancelled."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment Methods",
+      "item": [
+        {
+          "name": "GET /api/user/payment-methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/payment-methods?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "payment-methods"],
+              "query": [{ "key": "user_id", "value": "{{userId}}" }]
+            },
+            "description": "Comprobar 200 y array de métodos de pago."
+          }
+        },
+        {
+          "name": "POST /api/user/payment-methods",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"credit_card\",\n  \"last_four\": \"4242\",\n  \"holder_name\": \"Ana Pérez\",\n  \"is_default\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/payment-methods?user_id={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "payment-methods"],
+              "query": [{ "key": "user_id", "value": "{{userId}}" }]
+            },
+            "description": "Comprobar 201. Types válidos: credit_card, debit_card, paypal, bank_transfer."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "if (data.id) pm.collectionVariables.set('methodId', String(data.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT /api/user/payment-methods/:method_id",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"holder_name\": \"Ana P.\",\n  \"is_default\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/payment-methods/{{methodId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "payment-methods", "{{methodId}}"]
+            },
+            "description": "Comprobar 200 y cambios aplicados; 404 si no existe."
+          }
+        },
+        {
+          "name": "DELETE /api/user/payment-methods/:method_id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/payment-methods/{{methodId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "payment-methods", "{{methodId}}"]
+            },
+            "description": "Comprobar 200 y que deje de aparecer en el GET."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "GET /api/user/notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/notifications?user_id={{userId}}&is_read=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "notifications"],
+              "query": [
+                { "key": "user_id", "value": "{{userId}}" },
+                { "key": "is_read", "value": "false" }
+              ]
+            },
+            "description": "Comprobar 200 y filtro por is_read."
+          }
+        },
+        {
+          "name": "PUT /api/user/notifications/:notification_id",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "notifications", "{{notificationId}}"]
+            },
+            "description": "Comprobar 200 y que is_read pase a true."
+          }
+        }
+      ]
+    }
+  ]
+}

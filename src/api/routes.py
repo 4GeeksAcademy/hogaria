@@ -200,10 +200,14 @@ def update_user_profile():
         return jsonify({"error": "Usuario no encontrado"}), 404
 
     # Actualizar campos
-    user.name = data.get('name', user.name)
+    name = data.get('name')
+    if name:
+        parts = name.strip().split(" ", 1)
+        user.firstname = parts[0]
+        if len(parts) > 1:
+            user.lastname = parts[1]
     user.phone = data.get('phone', user.phone)
     user.email = data.get('email', user.email)
-    user.avatar = data.get('avatar', user.avatar)
 
     db.session.commit()
     return jsonify(user.serialize()), 200
@@ -230,8 +234,7 @@ def change_password():
     if not current_password or not new_password:
         return jsonify({"error": "Contraseña actual y nueva requeridas"}), 400
 
-    # Implementar hash de contraseña
-    user.password = new_password
+    user.set_password(new_password)
     db.session.commit()
 
     return jsonify({"message": "Contraseña actualizada correctamente"}), 200
@@ -411,7 +414,7 @@ def get_notifications():
     if is_read is not None:
         query = query.filter_by(is_read=is_read)
 
-    notifications = query.order_by(Notification.created_at.desc()).all()
+    notifications = query.order_by(Notification.id.desc()).all()
     return jsonify([notif.serialize() for notif in notifications]), 200
 
 

@@ -1,4 +1,5 @@
 import enum
+from hmac import compare_digest
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Enum as SQLEnum, Float, Integer, Column, ForeignKey, Table, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,6 +31,12 @@ class User(db.Model):
         "Opinion", back_populates="author")
     history: Mapped[list["Service"]] = relationship(
         "Service", back_populates="user")
+
+    def check_password(self, password):
+        return compare_digest(self.password, password)
+
+    def set_password(self, password):
+        self.password = password
 
     def serialize(self):
         return {

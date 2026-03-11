@@ -141,3 +141,46 @@
     grid-column: span 1;
   }
 }
+.home-extra{
+  margin-top:60px;
+  display:flex;
+  justify-content:center;
+  gap:25px;
+}
+
+.extra-card{
+  width:180px;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  transition:0.3s;
+  background:white;
+}
+
+.extra-card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 12px 25px rgba(0,0,0,0.12);
+}
+
+.extra-card h3{
+  font-size:14px;
+  margin-bottom:5px;
+}
+
+.extra-card p{
+  font-size:12px;
+  color:#64748b;
+}
+.Atencion img { 
+  width: 30px;
+  height: 30px;
+  margin-bottom: 15px;
+
+}
+.valoracion img{
+  width: 30px;
+  height: 30px;
+  margin-bottom: 15px;
+}

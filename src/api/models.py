@@ -13,7 +13,6 @@ service_city = Table(
 )
 
 
-
 class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
@@ -21,8 +20,10 @@ class User(db.Model):
     firstname: Mapped[str] = mapped_column(nullable=False)
     lastname: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
-    opinions: Mapped[list["Opinion"]] = relationship("Opinion", back_populates="author")
-    history: Mapped[list["Service"]] = relationship("Service", back_populates="user")
+    opinions: Mapped[list["Opinion"]] = relationship(
+        "Opinion", back_populates="author")
+    history: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="user")
 
     def serialize(self):
         return {
@@ -49,8 +50,10 @@ class Company(db.Model):
     name: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
     rate: Mapped[float] = mapped_column(nullable=True)
-    opinions: Mapped[list["Opinion"]] = relationship("Opinion", back_populates="company")
-    services: Mapped[list["Service"]] = relationship("Service", back_populates="company")
+    opinions: Mapped[list["Opinion"]] = relationship(
+        "Opinion", back_populates="company")
+    services: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="company")
 
     def serialize(self):
         return {
@@ -70,7 +73,8 @@ class Company(db.Model):
 class City(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
-    services: Mapped[list["Service"]] = relationship("Service", back_populates="city")
+    services: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="city")
 
     def serialize(self):
         return {
@@ -78,19 +82,23 @@ class City(db.Model):
             "name": self.name,
             "services": self.services
         }
-    
+
+
 class Service(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    category: Mapped[enumerate] = mapped_column(Enum('Transport', 'Accommodation', 'Food', 'House', name='category_enum'), nullable=False)
+    category: Mapped[enumerate] = mapped_column(Enum(
+        'Transport', 'Accommodation', 'Food', 'House', name='category_enum'), nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     city_id: Mapped[int] = mapped_column(ForeignKey("city.id"), nullable=False)
-    company_id: Mapped[int] = mapped_column(ForeignKey("company.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("company.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     direction: Mapped[str] = mapped_column(nullable=False)
     all_day: Mapped[bool] = mapped_column(nullable=False)
     price: Mapped[float] = mapped_column(nullable=False)
     city: Mapped["City"] = relationship("City", back_populates="services")
-    company: Mapped["Company"] = relationship("Company", back_populates="services")
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="services")
     user: Mapped["User"] = relationship("User", back_populates="history")
 
     def serialize(self):
@@ -103,15 +111,18 @@ class Service(db.Model):
             "all_day": self.all_day,
             "price": self.price
         }
-    
+
+
 class Opinion(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    company_id: Mapped[int] = mapped_column(ForeignKey("company.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("company.id"), nullable=False)
     rating: Mapped[float] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(nullable=True)
     author: Mapped["User"] = relationship("User", back_populates="opinions")
-    company: Mapped["Company"] = relationship("Company", back_populates="opinions")
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="opinions")
 
     def serialize(self):
         return {

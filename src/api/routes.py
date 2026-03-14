@@ -386,36 +386,40 @@ def mark_notification_read(notification_id):
 
     return jsonify(notification.serialize()), 200
 
-#Endpoints de Empresa
+# Endpoints de Empresa
 
-@api.route('/company/<int:comppany_id>', methods=['GET'])
+
+@api.route('/company/<int:company_id>', methods=['GET'])
 def get_company(company_id):
     "Obtener perfil de empresa"""
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
-    
+
     company_data = company.serialize()
-    company_data["services"] = [service.serialize() for service in company.services]
-    company_data["opinions"] = [opinion.serialize() for opinion in company.opinions]
-    
+    company_data["services"] = [service.serialize()
+                                for service in company.services]
+    company_data["opinions"] = [opinion.serialize()
+                                for opinion in company.opinions]
+
     return jsonify(company_data), 200
+
 
 @api.route('/company', methods=['POST'])
 def create_company():
     """Crear una nueva empresa"""
     data = request.json
-    
+
     required_fields = ['name', 'email', 'password', 'phone']
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Campo '{field}' requerido"}), 400
-    
+
     # Verificar que el email no exista
     existing_company = Company.query.filter_by(email=data.get('email')).first()
     if existing_company:
         return jsonify({"error": "El email ya está registrado"}), 400
-    
+
     company = Company(
         email=data.get('email'),
         password=data.get('password'),
@@ -423,29 +427,31 @@ def create_company():
         phone=data.get('phone'),
         rate=0.0
     )
-    
+
     db.session.add(company)
     db.session.commit()
-    
+
     return jsonify(company.serialize()), 201
+
 
 @api.route('/company/<int:company_id>', methods=['PUT'])
 def update_company(company_id):
     """Actualizar información de empresa"""
     data = request.json
     company = Company.query.get(company_id)
-    
+
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
-    
+
     company.name = data.get('name', company.name)
     company.phone = data.get('phone', company.phone)
     company.email = data.get('email', company.email)
-    
+
     db.session.commit()
     return jsonify(company.serialize()), 200
 
-#Endpoints de Servicios
+# Endpoints de Servicios
+
 
 @api.route('/company/<int:company_id>/services', methods=['GET'])
 def get_company_services(company_id):
@@ -453,7 +459,7 @@ def get_company_services(company_id):
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
-    
+
     services = Service.query.filter_by(company_id=company_id).all()
     return jsonify([service.serialize() for service in services]), 200
 
@@ -462,16 +468,16 @@ def get_company_services(company_id):
 def create_service(company_id):
     """Crear un nuevo servicio"""
     data = request.json
-    
+
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
-    
+
     required_fields = ['name', 'category', 'direction', 'price', 'city_id']
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Campo '{field}' requerido"}), 400
-    
+
     service = Service(
         company_id=company_id,
         name=data.get('name'),
@@ -482,10 +488,10 @@ def create_service(company_id):
         user_id=data.get('user_id'),
         all_day=data.get('all_day', False)
     )
-    
+
     db.session.add(service)
     db.session.commit()
-    
+
     return jsonify(service.serialize()), 201
 
 
@@ -494,16 +500,16 @@ def update_service(service_id):
     """Actualizar un servicio"""
     data = request.json
     service = Service.query.get(service_id)
-    
+
     if not service:
         return jsonify({"error": "Servicio no encontrado"}), 404
-    
+
     service.name = data.get('name', service.name)
     service.category = data.get('category', service.category)
     service.price = data.get('price', service.price)
     service.direction = data.get('direction', service.direction)
     service.all_day = data.get('all_day', service.all_day)
-    
+
     db.session.commit()
     return jsonify(service.serialize()), 200
 
@@ -514,13 +520,14 @@ def delete_service(service_id):
     service = Service.query.get(service_id)
     if not service:
         return jsonify({"error": "Servicio no encontrado"}), 404
-    
+
     db.session.delete(service)
     db.session.commit()
-    
+
     return jsonify({"message": "Servicio eliminado"}), 200
 
 # Endpoints de Opiniones
+
 
 @api.route('/company/<int:company_id>/opinions', methods=['GET'])
 def get_company_opinions(company_id):
@@ -528,7 +535,7 @@ def get_company_opinions(company_id):
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
-    
+
     opinions = Opinion.query.filter_by(company_id=company_id).all()
     return jsonify([opinion.serialize() for opinion in opinions]), 200
 
@@ -537,28 +544,49 @@ def get_company_opinions(company_id):
 def create_opinion(company_id):
     """Crear una nueva opinión"""
     data = request.json
-    
+
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
-    
+
     required_fields = ['user_id', 'rating']
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"Campo '{field}' requerido"}), 400
-    
+
     opinion = Opinion(
         user_id=data.get('user_id'),
         company_id=company_id,
         rating=data.get('rating'),
         comment=data.get('comment')
     )
-    
+
     db.session.add(opinion)
-    
+
     # Actualizar el rating promedio de la empresa
-    company.rate = db.session.query(db.func.avg(Opinion.rating)).filter_by(company_id=company_id).scalar() or 0.0
-    
+    company.rate = db.session.query(db.func.avg(Opinion.rating)).filter_by(
+        company_id=company_id).scalar() or 0.0
+
     db.session.commit()
-    
+
     return jsonify(opinion.serialize()), 201
+
+
+@api.route('/company/<int:company_id>/gallery', methods=['GET'])
+def get_company_gallery(company_id):
+    """Obtener galería de una empresa"""
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    return jsonify([]), 200
+
+
+@api.route('/company/<int:company_id>/coverage', methods=['GET'])
+def get_company_coverage(company_id):
+    """Obtener zonas de cobertura de una empresa"""
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    return jsonify([]), 200

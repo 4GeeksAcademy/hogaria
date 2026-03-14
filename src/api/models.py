@@ -154,7 +154,7 @@ class Opinion(db.Model):
 # Modelos de la Página Perfil del Usuario
 
 
-class UserProfile(db.Model):
+class UserProfile(db.Model): 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user.id"), unique=True, nullable=False)

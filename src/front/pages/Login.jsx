@@ -113,13 +113,14 @@ export const Login = () => {
         <p style={{ margin: "15px 0" }}>or</p>
 
         {/* LOGIN GOOGLE */}
-
-        <GoogleLogin
-          onSuccess={handleGoogleLogin}
-          onError={() => {
-            console.log("Login Failed");
-          }}
-        />
+        <div className="googlelogin">
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </div>
 
         <p className="signup">
           New here?{" "}

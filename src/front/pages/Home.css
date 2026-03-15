@@ -118,7 +118,7 @@
 
 .commerce-card {
   grid-column: 2 / span 2;
-  border: 2px solid #10b981;
+  border: 2px;
   transform: scale(1.02);
 }
 

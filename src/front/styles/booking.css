@@ -1,0 +1,12 @@
+.my-bookings {
+  padding: 1rem;
+}
+
+.bookings-filters button {
+  margin-right: 0.5rem;
+}
+
+.bookings-list {
+  display: grid;
+  gap: 1rem;
+}

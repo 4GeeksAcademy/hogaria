@@ -17,3 +17,19 @@ export const login = async (user, navigate) => {
   localStorage.setItem("token", data.token);
   navigate("/");
 };
+
+export const signup = async (user, navigate) => {
+    const response = await fetch (`${import.meta.env.VITE_BACKEND_URL}/api/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user)
+    })
+    const data = await response.json()
+    if (!response.ok) {
+        alert(data.error)
+    }else {
+        alert(data.message)
+        navigate('/login');
+    }
+
+}

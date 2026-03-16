@@ -1,6 +1,6 @@
 import { useState } from "react"
 import "./Login.css"
-import { login, signup } from "../services/backendServices.js";
+import { signup } from "../Services/backendServices.js";
 import { useNavigate } from "react-router-dom";
 
 export const RegisterUser = () => {
@@ -15,18 +15,20 @@ export const RegisterUser = () => {
     phone:""
   })
 
+  const handleChange = (e) => {
+    setUser({
+        ...user,
+        [e.target.name]:e.target.value
+    })
+  }
+
   const handleSubmit = (e)=>{
     e.preventDefault()
-    console.log(user)
-  }
-  const handleClick = (e)=>{
-    e.preventDefault()
-    if (!user.email || !user.password){
+    if (!user.email || !user.password || !user.name || !user.lastname || !user.phone) {
         alert("All fields are required")
         return
     }
     signup(user, navigate)
-
   }
 
   return(
@@ -37,13 +39,14 @@ export const RegisterUser = () => {
 
         <h2>Registro Usuario</h2>
 
-        <form onSubmit={handleSubmit}>
+        <form>
 
           <div className="input-group">
             <input
               type="text"
               placeholder="Nombre"
-              onChange={(e)=>setUser({...user,name:e.target.value})}
+              onChange={handleChange}
+              name="name"
             />
           </div>
 
@@ -51,7 +54,8 @@ export const RegisterUser = () => {
             <input
               type="text"
               placeholder="Apellido"
-              onChange={(e)=>setUser({...user,lastname:e.target.value})}
+              onChange={handleChange}
+              name="lastname"
             />
           </div>
 
@@ -59,7 +63,8 @@ export const RegisterUser = () => {
             <input
               type="email"
               placeholder="Correo"
-              onChange={(e)=>setUser({...user,email:e.target.value})}
+              onChange={handleChange}
+              name="email"
             />
           </div>
 
@@ -67,19 +72,21 @@ export const RegisterUser = () => {
             <input
               type="password"
               placeholder="Contraseña"
-              onChange={(e)=>setUser({...user,password:e.target.value})}
+              onChange={handleChange}
+              name="password"
             />
           </div>
 
           <div className="input-group">
             <input
               type="text"
-              placeholder="Teléfono (opcional)"
-              onChange={(e)=>setUser({...user,phone:e.target.value})}
+              placeholder="Teléfono"
+              onChange={handleChange}
+              name="phone"
             />
           </div>
 
-          <button className="login-btn" onClick={handleClick}>
+          <button className="login-btn" onClick={handleSubmit} type="submit">
             Crear cuenta
           </button>
 

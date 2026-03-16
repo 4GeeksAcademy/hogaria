@@ -2,13 +2,12 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from api.models import db, User, Service, City, Company, ServiceCategory, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType, Opinion
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from sqlalchemy import select
-from api.models import Service, City
-from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
+
 
 
 api = Blueprint('api', __name__)
@@ -386,25 +385,38 @@ def mark_notification_read(notification_id):
 
     return jsonify(notification.serialize()), 200
 
+
 @api.route('/register', methods=['POST'])
 def register():
     
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
+    name = data.get("name")
+    lastname = data.get("lastname")
+    phone = data.get("phone")
+
+    requested_fields = {"email", "password", "name", "lastname", "phone"}
+
+    missing = [field for field in requested_fields if field not in data]
     
-    if not email or not password:
-        return jsonify({"error":"Faltan datos, por favor complete todos los campos"}), 400
-    
+    if missing:
+        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+
     existing_user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
-    
+
     if existing_user:
         return jsonify({"error":"Ya existe un usuario con este correo electrónico"}), 400
     
-    new_user = User (email = email)
+    new_user = User 
+    {
+        "email": email,
+        "name": name,
+        "lastname": lastname,
+        "phone": phone
+    }
     new_user.set_password(password)
 
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message":"Su usuario ha sido creado exitosamente"}), 201
-

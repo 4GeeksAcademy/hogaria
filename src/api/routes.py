@@ -385,3 +385,26 @@ def mark_notification_read(notification_id):
     db.session.commit()
 
     return jsonify(notification.serialize()), 200
+
+@api.route('/register', methods=['POST'])
+def register():
+    
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+    
+    if not email or not password:
+        return jsonify({"error":"Faltan datos, por favor complete todos los campos"}), 400
+    
+    existing_user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    
+    if existing_user:
+        return jsonify({"error":"Ya existe un usuario con este correo electrónico"}), 400
+    
+    new_user = User (email = email)
+    new_user.set_password(password)
+
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify({"message":"Su usuario ha sido creado exitosamente"}), 201
+

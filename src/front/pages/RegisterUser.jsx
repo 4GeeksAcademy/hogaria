@@ -1,7 +1,11 @@
 import { useState } from "react"
 import "./Login.css"
+import { login, signup } from "../services/backendServices.js";
+import { useNavigate } from "react-router-dom";
 
 export const RegisterUser = () => {
+
+  const navigate = useNavigate()
 
   const [user,setUser] = useState({
     name:"",
@@ -14,6 +18,15 @@ export const RegisterUser = () => {
   const handleSubmit = (e)=>{
     e.preventDefault()
     console.log(user)
+  }
+  const handleClick = (e)=>{
+    e.preventDefault()
+    if (!user.email || !user.password){
+        alert("All fields are required")
+        return
+    }
+    signup(user, navigate)
+
   }
 
   return(
@@ -66,7 +79,7 @@ export const RegisterUser = () => {
             />
           </div>
 
-          <button className="login-btn">
+          <button className="login-btn" onClick={handleClick}>
             Crear cuenta
           </button>
 

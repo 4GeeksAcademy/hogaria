@@ -6,7 +6,7 @@ const CompanyHeader = ({ company }) => {
           {/* Logo */}
           <div className="col-md-2 text-center">
             <img
-              src={company?.logo || "https://via.placeholder.com/150"}
+              src={company?.logo || "https://placehold.co/150"}
               alt={company?.name || "Empresa"}
               className="company-logo rounded-circle"
               style={{ width: "150px", height: "150px", objectFit: "cover", border: "4px solid #007bff" }}
@@ -29,7 +29,7 @@ const CompanyHeader = ({ company }) => {
             <div className="rating mb-2">
               <i className="fas fa-star text-warning"></i>
               <span className="ms-2">
-                {company?.rating ? company.rating.toFixed(1) : "Sin calificación"} 
+                {company?.rating ? company.rating.toFixed(1) : "Sin calificación"}
                 ({company?.opinions?.length || 0} opiniones)
               </span>
             </div>

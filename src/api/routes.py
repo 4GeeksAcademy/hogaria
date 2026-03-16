@@ -138,7 +138,13 @@ def get_profile():
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
-    return jsonify(user.serialize()), 200
+    return jsonify({
+        "id": user.id,
+        "email": user.email,
+        "firstname": user.firstname,
+        "lastname": user.lastname,
+        "phone": user.phone
+    }), 200
 
 
 @api.route('/user/profile', methods=['PUT'])

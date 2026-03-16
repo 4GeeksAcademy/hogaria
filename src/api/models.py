@@ -46,8 +46,6 @@ class User(db.Model):
         }
 
 
-
-
 class Company(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(
@@ -73,8 +71,6 @@ class Company(db.Model):
         }
 
 
-
-
 class City(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
@@ -94,7 +90,7 @@ class City(db.Model):
 class Service(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     category: Mapped[str] = mapped_column(SQLEnum(
-        
+
         'Transport', 'Accommodation', 'Food', 'House', name='category_enum'), nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     city_id: Mapped[int] = mapped_column(ForeignKey("city.id"), nullable=False)
@@ -250,4 +246,3 @@ class Notification(db.Model):
             "message": self.message,
             "is_read": self.is_read,
         }
-

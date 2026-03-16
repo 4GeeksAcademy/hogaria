@@ -80,7 +80,7 @@ export const SearchForm = ({ onSearch }) => {
 
   // Render del formulario
   return (
-    <form onSubmit={handleSubmit} className="card p-4 mb-4">
+    <form onSubmit={handleSubmit} className="search-form">
       <div className="row g-3">
         {/* Input de texto para búsqueda */}
         <div className="col-md-4">
@@ -104,7 +104,7 @@ export const SearchForm = ({ onSearch }) => {
             Servicio
           </label>
           <select
-            className="form-select"
+            className="form-control"
             id="service_id"
             name="service_id"
             value={filters.service_id}
@@ -125,7 +125,7 @@ export const SearchForm = ({ onSearch }) => {
             Ciudad
           </label>
           <select
-            className="form-select"
+            className="form-control"
             id="city_id"
             name="city_id"
             value={filters.city_id}

@@ -1,53 +1,135 @@
+.company-profile-page {
+  background-color: #1e3a8a;
+  min-height: 100vh;
+  padding: 2rem 0;
+}
+
 .company-header {
-  border-bottom: 2px solid #e0e0e0;
+  background: #ebebeb;
+  border-bottom: 2px solid #10b981;
   margin-bottom: 2rem;
+  padding: 2rem;
+  border-radius: 15px;
+  margin: 2rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
 .company-logo {
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+}
+
+.company-tabs-section {
+  background: #ebebeb;
+  border-radius: 15px;
+  padding: 0;
+  margin: 0 2rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 .company-tabs-section .nav-tabs {
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid #10b981;
+  background: #ebebeb;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .company-tabs-section .nav-link {
-  color: #495057;
-  border: none;
-  border-bottom: 3px solid transparent;
-  padding: 0.75rem 1.5rem;
+  color: #0f172a !important;
+  border: none !important;
+  border-bottom: 3px solid transparent !important;
+  padding: 0.75rem 1.5rem !important;
   transition: all 0.3s ease;
+  font-weight: 500;
+  background: #f3f4f6 !important;
+  margin: 0 !important;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.05) !important;
+  flex: 0 1 auto;
 }
 
 .company-tabs-section .nav-link:hover {
-  color: #007bff;
+  color: #10b981 !important;
+  background-color: #e5e7eb !important;
+  transform: translateY(-2px);
 }
 
 .company-tabs-section .nav-link.active {
-  color: #007bff;
-  border-bottom-color: #007bff;
-  background-color: transparent;
+  color: #10b981 !important;
+  border-bottom-color: #10b981 !important;
+  background-color: white !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+.company-tabs-section .tab-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 0 0 15px 15px;
+}
+
+.company-tabs-section .container {
+  max-width: 100%;
+  padding: 0;
 }
 
 .service-card {
-  transition: transform 0.2s, box-shadow 0.2s;
-  border-left: 4px solid #007bff;
+  background: white;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  border-left: 4px solid #10b981;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.service-card h4,
+.service-card h5 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.service-card p {
+  color: #64748b;
 }
 
 .service-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
 }
 
 .opinion-card {
-  border-left: 4px solid #ffc107;
+  background: white;
+  border-left: 4px solid #10b981;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.opinion-card h5 {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.opinion-card p {
+  color: #64748b;
 }
 
 .rating {
   font-size: 1.2rem;
+  color: #10b981;
+  font-weight: 600;
 }
 
 .stars {
   font-size: 1rem;
   letter-spacing: 0.25rem;
+  color: #fbbf24;
 }

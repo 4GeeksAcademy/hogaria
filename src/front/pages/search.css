@@ -91,6 +91,7 @@
   margin-bottom: 0;
   background: white;
   border-radius: 8px;
+  color: #0f172a !important;
 }
 
 .results-container .table thead {
@@ -102,7 +103,8 @@
   border: none;
   padding: 1rem;
   font-weight: 600;
-  color: white;
+  color: white !important;
+  background: #10b981 !important;
 }
 
 .results-container .table tbody tr {
@@ -116,14 +118,15 @@
 
 .results-container .table tbody td {
   padding: 1rem;
-  color: #0f172a;
+  color: #0f172a !important;
   vertical-align: middle;
+  background: white !important;
 }
 
 /* Badge Styles */
 .results-container .badge {
   background: #10b981 !important;
-  color: white;
+  color: white !important;
   padding: 0.35rem 0.65rem;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -145,6 +148,10 @@
 .empty-search-state p {
   font-size: 1.1rem;
   margin: 0;
+}
+
+.results-container .text-muted {
+  color: #64748b !important;
 }
 
 /* Loading State */

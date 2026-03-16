@@ -4,6 +4,45 @@ import { SearchForm } from "../components/SearchForm";
 import { SearchResults } from "../components/SearchResults";
 import "./search.css";
 
+// Datos de ejemplo para mostrar cuando la API falla
+const exampleProfessional = [
+    {
+        id: 1,
+        username: "juanplomero",
+        name: "Juan",
+        lastname: "García",
+        email: "juan@example.com",
+        telefono: "600123456",
+        servicios: [
+            { id: 1, nombre: "Plomería" },
+            { id: 2, nombre: "Reparaciones" }
+        ]
+    },
+    {
+        id: 2,
+        username: "carloselec",
+        name: "Carlos",
+        lastname: "López",
+        email: "carlos@example.com",
+        telefono: "600654321",
+        servicios: [
+            { id: 3, nombre: "Electricidad" }
+        ]
+    },
+    {
+        id: 3,
+        username: "mariocarp",
+        name: "Mario",
+        lastname: "Rodríguez",
+        email: "mario@example.com",
+        telefono: "600789012",
+        servicios: [
+            { id: 4, nombre: "Carpintería" },
+            { id: 5, nombre: "Reformas" }
+        ]
+    }
+];
+
 export const Search = () => {
     // Hook para acceder a los parámetros de búsqueda en la URL (por ejemplo, ?q=plomería)
     const [searchParams] = useSearchParams();
@@ -29,9 +68,26 @@ export const Search = () => {
             if (filters.q) params.append("q", filters.q);
             if (filters.service_id) params.append("service_id", filters.service_id);
             if (filters.city_id) params.append("city_id", filters.city_id);
-            const response = await fetch(`/api/search?${params.toString()}`);
+
+            // Intentar con VITE_BACKEND_URL primero, luego con ruta relativa
+            const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+            const response = await fetch(`${backendUrl}/api/search?${params.toString()}`);
+
+            if (!response.ok) {
+                console.warn(`API returned ${response.status}, using sample data`);
+                setProfessionals(exampleProfessional);
+                return;
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.warn('API did not return JSON, using sample data');
+                setProfessionals(exampleProfessional);
+                return;
+            }
+
             const data = await response.json();
-            // Si la búsqueda real no devuelve nada, muestra el ejemplo
+            // Si la búsqueda real devuelve resultados, muéstralos
             if (Array.isArray(data) && data.length > 0) {
                 setProfessionals(data);
             } else {

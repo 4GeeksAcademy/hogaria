@@ -12,8 +12,10 @@ export const Navbar = () => {
     e.preventDefault();
     if (query.trim() !== "") {
       navigate(`/search?q=${encodeURIComponent(query)}`);
-      setQuery("");
+    } else {
+      navigate("/search");
     }
+    setQuery("");
   };
 
   const handleLogout = () => {
@@ -43,15 +45,16 @@ export const Navbar = () => {
               </button>
             )}
           </div>
-          <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220 }}>
+          <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220, gap: "0.5rem" }}>
             <input
               className="form-control me-2"
               type="search"
               placeholder="Buscar..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              style={{ flex: 1 }}
             />
-            <button className="register-btn" type="submit">
+            <button className="search-btn" type="submit" style={{ whiteSpace: "nowrap" }}>
               Buscar
             </button>
           </form>

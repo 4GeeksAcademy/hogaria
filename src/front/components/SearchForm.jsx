@@ -24,21 +24,35 @@ export const SearchForm = ({ onSearch }) => {
     const fetchOptions = async () => {
       setLoadingOptions(true);
       try {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+
         // Intenta obtener los datos reales de la API
         const [servicesRes, citiesRes] = await Promise.all([
-          fetch("/api/services"),
-          fetch("/api/cities"),
+          fetch(`${backendUrl}/api/services`),
+          fetch(`${backendUrl}/api/cities`),
         ]);
 
         // Si la respuesta es correcta, guarda los datos en el estado
         if (servicesRes.ok) {
           const servicesData = await servicesRes.json();
-          setServices(servicesData);
+          setServices(Array.isArray(servicesData) ? servicesData : []);
+        } else {
+          setServices([
+            { id: 1, nombre: "Plomería", categoria: "Oficios" },
+            { id: 2, nombre: "Electricidad", categoria: "Oficios" },
+            { id: 3, nombre: "Carpintería", categoria: "Oficios" },
+          ]);
         }
 
         if (citiesRes.ok) {
           const citiesData = await citiesRes.json();
-          setCities(citiesData);
+          setCities(Array.isArray(citiesData) ? citiesData : []);
+        } else {
+          setCities([
+            { id: 1, nombre: "Madrid" },
+            { id: 2, nombre: "Barcelona" },
+            { id: 3, nombre: "Valencia" },
+          ]);
         }
       } catch (error) {
         // Si falla la API, usa datos de ejemplo (mock)

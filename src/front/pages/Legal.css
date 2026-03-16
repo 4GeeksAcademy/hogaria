@@ -3,6 +3,8 @@
   margin:auto;
   padding:60px 20px;
   line-height:1.7;
+  background:#ebebeb;
+  border-radius:15px;
 }
 
 .legal-container h1{

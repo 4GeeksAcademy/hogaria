@@ -28,14 +28,16 @@ export const Inicio = () => {
   return (
 
     <div className="inicio-page">
-
+      <div className="inicio-title">
+        <h1>¡Bienvenido a Hogaria!</h1>
+      </div>
       <div className="orbit-wrapper">
 
         {/* LOGO */}
         <div 
           className="center-logo"
           onClick={() => navigate("/Home")}
-        >
+          >
           <img src={logo} alt="Hogaria" />
         </div>
 
@@ -43,12 +45,12 @@ export const Inicio = () => {
         <div className="orbit">
 
           {services.map((s,i) => (
-
+            
             <div
-              key={i}
-              className="orbit-item"
-              style={{ "--i": i }}
-              onClick={() => navigate("/Home")}
+            key={i}
+            className="orbit-item"
+            style={{ "--i": i }}
+            onClick={() => navigate("/Home")}
             >
 
               <div className="orbit-card">
@@ -64,6 +66,7 @@ export const Inicio = () => {
 
       </div>
 
+    <p className="inicio-subtitle">Tu plataforma de servicios para el hogar o empresa</p>
     </div>
 
   )

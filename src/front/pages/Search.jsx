@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { SearchForm } from "../components/SearchForm";
 import { SearchResults } from "../components/SearchResults";
+import "./Search.css";
 
 export const Search = () => {
     // Hook para acceder a los parámetros de búsqueda en la URL (por ejemplo, ?q=plomería)
@@ -57,26 +58,37 @@ export const Search = () => {
     }, [initialQ, initialServiceId, initialCityId]);
 
     return (
-        <div className="container my-5">
-            <h1 className="mb-4">Buscar Profesionales</h1>
-            {/* Pasamos los valores iniciales al formulario */}
-            <SearchForm
-                onSearch={handleSearch}
-                initialQ={initialQ}
-                initialServiceId={initialServiceId}
-                initialCityId={initialCityId}
-            />
-            {loading && (
-                <div className="alert alert-info mt-4">
-                    <strong>Buscando...</strong>
-                </div>
-            )}
-            {searched && !loading && professionals.length === 0 && (
-                <div className="alert alert-warning mt-4">
-                    <strong>No se encontraron resultados.</strong>
-                </div>
-            )}
-            {professionals.length > 0 && <SearchResults professionals={professionals} />}
+        <div className="search-page">
+
+            <div className="search-container">
+
+                <h1 className="search-title">Buscar profesionales</h1>
+
+                <SearchForm
+                    onSearch={handleSearch}
+                    initialQ={initialQ}
+                    initialServiceId={initialServiceId}
+                    initialCityId={initialCityId}
+                />
+
+                {loading && (
+                    <div className="search-message info">
+                        Buscando profesionales...
+                    </div>
+                )}
+
+                {searched && !loading && professionals.length === 0 && (
+                    <div className="search-message warning">
+                        No se encontraron resultados
+                    </div>
+                )}
+
+                {professionals.length > 0 && (
+                    <SearchResults professionals={professionals} />
+                )}
+
+            </div>
+
         </div>
     );
 };

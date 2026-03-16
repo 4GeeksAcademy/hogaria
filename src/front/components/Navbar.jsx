@@ -27,7 +27,7 @@ export const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <div className="logo">
-          <Link to="/">
+          <Link to="/home">
             <img src={logo} alt="Hogaria Logo" />
           </Link>
         </div>
@@ -47,7 +47,7 @@ export const Navbar = () => {
           </div>
           <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220, gap: "0.5rem" }}>
             <input
-              className="form-control me-2"
+              className="form-control me-3"
               type="search"
               placeholder="Buscar..."
               value={query}

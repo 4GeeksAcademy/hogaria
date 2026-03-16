@@ -30,6 +30,7 @@ def handle_hello():
 
 
 @api.route("/search")
+@api.route("/search")
 def search():
     q = request.args.get("q", "")
     service_id = request.args.get("service_id")
@@ -77,9 +78,11 @@ def search():
 
 
 
+
 # Endpoint mock para servicios
 
 
+@api.route("/services")
 @api.route("/services")
 def get_services():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
@@ -93,6 +96,7 @@ def get_services():
 # Endpoint mock para ciudades
 
 
+@api.route("/cities")
 @api.route("/cities")
 def get_cities():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista

@@ -15,8 +15,8 @@ export const SearchResults = ({ professionals }) => {
 
       {/* Tabla de resultados */}
       <div className="table-responsive">
-        <table className="table table-hover table-striped">
-          <thead className="table-dark">
+        <table className="table table-hover">
+          <thead>
             <tr>
               <th>Usuario</th>
               <th>Nombre</th>
@@ -42,7 +42,7 @@ export const SearchResults = ({ professionals }) => {
                   {professional.servicios && professional.servicios.length > 0 ? (
                     <div className="d-flex flex-wrap gap-1">
                       {professional.servicios.map((service) => (
-                        <span key={service.id} className="badge bg-info">
+                        <span key={service.id} className="badge">
                           {service.nombre}
                         </span>
                       ))}

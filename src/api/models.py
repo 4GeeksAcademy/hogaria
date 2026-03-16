@@ -38,6 +38,12 @@ class User(db.Model):
     def set_password(self, password):
         self.password = password
 
+    def check_password(self, password):
+        return compare_digest(self.password, password)
+
+    def set_password(self, password):
+        self.password = password
+
     def serialize(self):
         return {
             "id": self.id,

@@ -9,12 +9,17 @@ from flask_jwt_extended import create_access_token
 from sqlalchemy import select
 from api.models import Service, City
 from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType, Company, Opinion
+import stripe
+import os
 
 
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
 CORS(api)
+
+# Configurar Stripe con la clave secreta
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -596,3 +601,72 @@ def get_company_coverage(company_id):
         return jsonify({"error": "Empresa no encontrada"}), 404
 
     return jsonify([]), 200
+
+
+# STRIPE ENDPOINTS
+
+@api.route('/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    """Crear un PaymentIntent para el formulario de pago integrado"""
+    try:
+        data = request.get_json()
+
+        # Validar datos requeridos
+        amount = data.get('amount')
+        product_name = data.get('product_name', 'Servicio')
+        user_id = data.get('user_id')
+
+        if not amount:
+            return jsonify({'error': 'El monto es requerido'}), 400
+
+        # Convertir a centavos
+        amount_cents = int(float(amount))
+
+        # Crear PaymentIntent en lugar de Checkout Session
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency='usd',
+            description=product_name,
+            metadata={
+                'product_name': product_name,
+                'user_id': user_id if user_id else 'guest'
+            }
+        )
+
+        return jsonify({
+            'clientSecret': payment_intent.client_secret,
+            'paymentIntentId': payment_intent.id
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@api.route('/payment-success', methods=['POST'])
+def payment_success():
+    """Confirmar que el pago fue exitoso y guardar en BD"""
+    try:
+        data = request.get_json()
+        session_id = data.get('session_id')
+        user_id = data.get('user_id')
+
+        if not session_id:
+            return jsonify({'error': 'session_id es requerido'}), 400
+
+        # Recuperar detalles de la sesión desde Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+
+        if session.payment_status != 'paid':
+            return jsonify({'error': 'El pago no fue completado'}), 400
+
+        # Aquí puedes guardar la transacción en tu BD
+        # Por ejemplo, actualizar el estado del Booking o crear un registro de pago
+
+        return jsonify({
+            'success': True,
+            'message': 'Pago procesado correctamente',
+            'amount': session.amount_total / 100  # Convertir de centavos a dólares
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400

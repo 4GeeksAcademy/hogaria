@@ -28,7 +28,6 @@ export const RegisterUser = () => {
         alert("All fields are required")
         return
     }
-    console.log(user)
     signup(user, navigate)
   }
 

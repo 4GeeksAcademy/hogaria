@@ -87,7 +87,7 @@ def get_services():
 # Endpoint mock para ciudades
 
 
-@api.route("/cities")
+@api.route("/cities", methods=["GET"])
 def get_cities():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
     cities = [
@@ -386,7 +386,7 @@ def mark_notification_read(notification_id):
     return jsonify(notification.serialize()), 200
 
 
-@api.route('/register/user', methods=['POST'])
+@api.route('register/user', methods=['POST'])
 def register():
     
     data = request.get_json()
@@ -408,13 +408,13 @@ def register():
     if existing_user:
         return jsonify({"error":"Ya existe un usuario con este correo electrónico"}), 400
     
-    new_user = User 
-    {
-        "email": email,
-        "name": name,
-        "lastname": lastname,
-        "phone": phone
-    }
+    new_user = User(
+        email=email,
+        firstname=name,
+        lastname=lastname,
+        phone=phone
+    )
+
     new_user.set_password(password)
 
     db.session.add(new_user)

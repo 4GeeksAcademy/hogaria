@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Enum as SQLEnum, Float, Integer, Column, ForeignKey, Table, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from flask_bcrypt import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -27,11 +28,11 @@ class User(db.Model):
     history: Mapped[list["Service"]] = relationship(
         "Service", back_populates="user")
 
-    def check_password(self, password):
-        return compare_digest(self.password, password)
-
     def set_password(self, password):
-        self.password = password
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+                return check_password_hash(self.password_hash, password)
 
     def serialize(self):
         return {
@@ -65,6 +66,12 @@ class Company(db.Model):
         "Opinion", back_populates="company")
     services: Mapped[list["Service"]] = relationship(
         "Service", back_populates="company")
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     def serialize(self):
         return {

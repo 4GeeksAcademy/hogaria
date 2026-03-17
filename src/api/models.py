@@ -27,16 +27,6 @@ class User(db.Model):
         "Opinion", back_populates="author")
     history: Mapped[list["Service"]] = relationship(
         "Service", back_populates="user")
-    opinions: Mapped[list["Opinion"]] = relationship(
-        "Opinion", back_populates="author")
-    history: Mapped[list["Service"]] = relationship(
-        "Service", back_populates="user")
-
-    def check_password(self, password):
-        return compare_digest(self.password, password)
-
-    def set_password(self, password):
-        self.password = password
 
     def check_password(self, password):
         return compare_digest(self.password, password)
@@ -62,16 +52,10 @@ class Company(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
-    email: Mapped[str] = mapped_column(
-        String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
     rate: Mapped[float] = mapped_column(nullable=True)
-    opinions: Mapped[list["Opinion"]] = relationship(
-        "Opinion", back_populates="company")
-    services: Mapped[list["Service"]] = relationship(
-        "Service", back_populates="company")
     opinions: Mapped[list["Opinion"]] = relationship(
         "Opinion", back_populates="company")
     services: Mapped[list["Service"]] = relationship(
@@ -96,8 +80,6 @@ class City(db.Model):
     name: Mapped[str] = mapped_column(nullable=False)
     services: Mapped[list["Service"]] = relationship(
         "Service", back_populates="city")
-    services: Mapped[list["Service"]] = relationship(
-        "Service", back_populates="city")
 
     def serialize(self):
         return {
@@ -117,15 +99,11 @@ class Service(db.Model):
     city_id: Mapped[int] = mapped_column(ForeignKey("city.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
         ForeignKey("company.id"), nullable=False)
-    company_id: Mapped[int] = mapped_column(
-        ForeignKey("company.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     direction: Mapped[str] = mapped_column(nullable=False)
     all_day: Mapped[bool] = mapped_column(nullable=False)
     price: Mapped[float] = mapped_column(nullable=False)
     city: Mapped["City"] = relationship("City", back_populates="services")
-    company: Mapped["Company"] = relationship(
-        "Company", back_populates="services")
     company: Mapped["Company"] = relationship(
         "Company", back_populates="services")
     user: Mapped["User"] = relationship("User", back_populates="history")
@@ -149,13 +127,9 @@ class Opinion(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
         ForeignKey("company.id"), nullable=False)
-    company_id: Mapped[int] = mapped_column(
-        ForeignKey("company.id"), nullable=False)
     rating: Mapped[float] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(nullable=True)
     author: Mapped["User"] = relationship("User", back_populates="opinions")
-    company: Mapped["Company"] = relationship(
-        "Company", back_populates="opinions")
     company: Mapped["Company"] = relationship(
         "Company", back_populates="opinions")
 

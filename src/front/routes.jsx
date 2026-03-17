@@ -19,6 +19,9 @@ import { CustomerSupport } from "./pages/CustomerSupport";
 import { Review } from "./pages/Review";
 import { CompanyProfile } from "./pages/CompanyProfile";
 import { CheckoutTest } from "./pages/CheckoutTest";
+import { Checkout } from "./pages/Checkout";
+import { Success } from "./pages/Success";
+import { Cancel } from "./pages/Cancel";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -35,7 +38,10 @@ export const router = createBrowserRouter(
       <Route path="support" element={<CustomerSupport />} />
       <Route path="review" element={<Review />} />
       <Route path="/profile/company" element={<CompanyProfile />} />
+      <Route path="checkout" element={<Checkout />} />
       <Route path="checkout-test" element={<CheckoutTest />} />
+      <Route path="success" element={<Success />} />
+      <Route path="cancel" element={<Cancel />} />
     </Route>
   )
 );

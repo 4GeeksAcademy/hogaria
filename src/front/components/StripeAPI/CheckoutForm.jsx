@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import './CheckoutForm.css';
 
 export default function CheckoutForm({ amount = 100, productName = 'Servicio' }) {
+  const navigate = useNavigate();
   const stripe = useStripe();
   const elements = useElements();
   const [error, setError] = useState(null);
@@ -46,6 +48,7 @@ export default function CheckoutForm({ amount = 100, productName = 'Servicio' })
     e.preventDefault();
 
     if (!stripe || !elements || !clientSecret) {
+      setError('Error: Stripe no está cargado correctamente');
       return;
     }
 
@@ -53,6 +56,20 @@ export default function CheckoutForm({ amount = 100, productName = 'Servicio' })
     setError(null);
 
     try {
+      // Primero: validar y enviar el formulario
+      const submitResult = await elements.submit();
+      console.log('Elements submit result:', submitResult);
+
+      // submitResult.error existe solo si hay un error real
+      if (submitResult?.error) {
+        const errorMessage = submitResult.error.message || 'Error en validación desconocido';
+        setError(`Error en validación: ${errorMessage}`);
+        setLoading(false);
+        console.error('Submit error:', submitResult.error);
+        return;
+      }
+
+      // Segundo: confirmar el pago
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         clientSecret,
@@ -63,15 +80,29 @@ export default function CheckoutForm({ amount = 100, productName = 'Servicio' })
       });
 
       if (error) {
-        setError(error.message);
+        setError(`Error de Stripe: ${error.message}`);
         setLoading(false);
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        setSuccess(true);
-        setLoading(false);
+        console.error('Stripe error:', error);
+      } else if (paymentIntent) {
+        console.log('Payment Intent status:', paymentIntent.status);
+        if (paymentIntent.status === 'succeeded') {
+          setSuccess(true);
+          setLoading(false);
+        } else if (paymentIntent.status === 'processing') {
+          setError('Tu pago está siendo procesado...');
+          setLoading(false);
+        } else if (paymentIntent.status === 'requires_action') {
+          setError('Se requiere acción adicional para completar el pago');
+          setLoading(false);
+        } else {
+          setError(`Estado del pago: ${paymentIntent.status}`);
+          setLoading(false);
+        }
       }
     } catch (err) {
-      setError('Error al procesar el pago. Intenta de nuevo.');
+      setError(`Error inesperado: ${err.message}`);
       setLoading(false);
+      console.error('Checkout error:', err);
     }
   };
 
@@ -96,13 +127,23 @@ export default function CheckoutForm({ amount = 100, productName = 'Servicio' })
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={!stripe || loading || !clientSecret}
-        className="submit-button"
-      >
-        {loading ? 'Procesando pago...' : `Pagar $${amount / 100}`}
-      </button>
+      <div className="button-group">
+        <button
+          type="submit"
+          disabled={!stripe || loading || !clientSecret}
+          className="submit-button"
+        >
+          {loading ? 'Procesando pago...' : `Pagar $${amount / 100}`}
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate('/cancel')}
+          className="cancel-button"
+          disabled={loading}
+        >
+          Cancelar
+        </button>
+      </div>
     </form>
   );
 }

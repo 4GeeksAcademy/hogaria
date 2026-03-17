@@ -17,6 +17,16 @@ import { RegisterUser } from "./pages/RegisterUser"
 import { RegisterCompany } from "./pages/RegisterCompany"
 import { CustomerSupport } from "./pages/CustomerSupport"
 import { Review } from "./pages/Review"
+import { ChooseAccount } from "./pages/ChooseAccount";
+import { RegisterUser } from "./pages/RegisterUser";
+import { RegisterCompany } from "./pages/RegisterCompany";
+import { CustomerSupport } from "./pages/CustomerSupport";
+import { Review } from "./pages/Review";
+import { CompanyProfile } from "./pages/CompanyProfile";
+import { CheckoutTest } from "./pages/CheckoutTest";
+import { Checkout } from "./pages/Checkout";
+import { Success } from "./pages/Success";
+import { Cancel } from "./pages/Cancel";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -41,6 +51,16 @@ export const router = createBrowserRouter(
       <Route path="/register/company" element={<RegisterCompany />} />
       <Route path="/support" element={<CustomerSupport />} />
       <Route path="/review" element={<Review />} />
+      <Route path="register" element={<ChooseAccount />} />
+      <Route path="register/user" element={<RegisterUser />} />
+      <Route path="register/company" element={<RegisterCompany />} />
+      <Route path="support" element={<CustomerSupport />} />
+      <Route path="review" element={<Review />} />
+      <Route path="/profile/company" element={<CompanyProfile />} />
+      <Route path="checkout" element={<Checkout />} />
+      <Route path="checkout-test" element={<CheckoutTest />} />
+      <Route path="success" element={<Success />} />
+      <Route path="cancel" element={<Cancel />} />
     </Route>
 
    

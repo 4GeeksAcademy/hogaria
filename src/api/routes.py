@@ -13,12 +13,18 @@ from google.auth.transport import requests
 from flask import request, jsonify
 from flask_jwt_extended import create_access_token
 from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType
+from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType, Company, Opinion
+import stripe
+import os
 
 
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
 CORS(api)
+
+# Configurar Stripe con la clave secreta
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY')
 
 
 @api.route('/hello', methods=['POST', 'GET'])
@@ -433,3 +439,326 @@ def mark_notification_read(notification_id):
     db.session.commit()
 
     return jsonify(notification.serialize()), 200
+
+# Endpoints de Empresa
+
+
+@api.route('/company/<int:company_id>', methods=['GET'])
+def get_company(company_id):
+    "Obtener perfil de empresa"""
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    company_data = company.serialize()
+    company_data["services"] = [service.serialize()
+                                for service in company.services]
+    company_data["opinions"] = [opinion.serialize()
+                                for opinion in company.opinions]
+
+    return jsonify(company_data), 200
+
+
+@api.route('/company', methods=['POST'])
+def create_company():
+    """Crear una nueva empresa"""
+    data = request.json
+
+    required_fields = ['name', 'email', 'password', 'phone']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Campo '{field}' requerido"}), 400
+
+    # Verificar que el email no exista
+    existing_company = Company.query.filter_by(email=data.get('email')).first()
+    if existing_company:
+        return jsonify({"error": "El email ya está registrado"}), 400
+
+    company = Company(
+        email=data.get('email'),
+        password=data.get('password'),
+        name=data.get('name'),
+        phone=data.get('phone'),
+        rate=0.0
+    )
+
+    db.session.add(company)
+    db.session.commit()
+
+    return jsonify(company.serialize()), 201
+
+
+@api.route('/company/<int:company_id>', methods=['PUT'])
+def update_company(company_id):
+    """Actualizar información de empresa"""
+    data = request.json
+    company = Company.query.get(company_id)
+
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    company.name = data.get('name', company.name)
+    company.phone = data.get('phone', company.phone)
+    company.email = data.get('email', company.email)
+
+    db.session.commit()
+    return jsonify(company.serialize()), 200
+
+# Endpoints de Servicios
+
+
+@api.route('/company/<int:company_id>/services', methods=['GET'])
+def get_company_services(company_id):
+    """Obtener servicios de una empresa"""
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    services = Service.query.filter_by(company_id=company_id).all()
+    return jsonify([service.serialize() for service in services]), 200
+
+
+@api.route('/company/<int:company_id>/services', methods=['POST'])
+def create_service(company_id):
+    """Crear un nuevo servicio"""
+    data = request.json
+
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    required_fields = ['name', 'category', 'direction', 'price', 'city_id']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Campo '{field}' requerido"}), 400
+
+    service = Service(
+        company_id=company_id,
+        name=data.get('name'),
+        category=data.get('category'),
+        direction=data.get('direction'),
+        price=data.get('price'),
+        city_id=data.get('city_id'),
+        user_id=data.get('user_id'),
+        all_day=data.get('all_day', False)
+    )
+
+    db.session.add(service)
+    db.session.commit()
+
+    return jsonify(service.serialize()), 201
+
+
+@api.route('/service/<int:service_id>', methods=['PUT'])
+def update_service(service_id):
+    """Actualizar un servicio"""
+    data = request.json
+    service = Service.query.get(service_id)
+
+    if not service:
+        return jsonify({"error": "Servicio no encontrado"}), 404
+
+    service.name = data.get('name', service.name)
+    service.category = data.get('category', service.category)
+    service.price = data.get('price', service.price)
+    service.direction = data.get('direction', service.direction)
+    service.all_day = data.get('all_day', service.all_day)
+
+    db.session.commit()
+    return jsonify(service.serialize()), 200
+
+
+@api.route('/service/<int:service_id>', methods=['DELETE'])
+def delete_service(service_id):
+    """Eliminar un servicio"""
+    service = Service.query.get(service_id)
+    if not service:
+        return jsonify({"error": "Servicio no encontrado"}), 404
+
+    db.session.delete(service)
+    db.session.commit()
+
+    return jsonify({"message": "Servicio eliminado"}), 200
+
+# Endpoints de Opiniones
+
+
+@api.route('/company/<int:company_id>/opinions', methods=['GET'])
+def get_company_opinions(company_id):
+    """Obtener opiniones de una empresa"""
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    opinions = Opinion.query.filter_by(company_id=company_id).all()
+    return jsonify([opinion.serialize() for opinion in opinions]), 200
+
+
+@api.route('/company/<int:company_id>/opinions', methods=['POST'])
+def create_opinion(company_id):
+    """Crear una nueva opinión"""
+    data = request.json
+
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    required_fields = ['user_id', 'rating']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"Campo '{field}' requerido"}), 400
+
+    opinion = Opinion(
+        user_id=data.get('user_id'),
+        company_id=company_id,
+        rating=data.get('rating'),
+        comment=data.get('comment')
+    )
+
+    db.session.add(opinion)
+
+    # Actualizar el rating promedio de la empresa
+    company.rate = db.session.query(db.func.avg(Opinion.rating)).filter_by(
+        company_id=company_id).scalar() or 0.0
+
+    db.session.commit()
+
+    return jsonify(opinion.serialize()), 201
+
+
+@api.route('/company/<int:company_id>/gallery', methods=['GET'])
+def get_company_gallery(company_id):
+    """Obtener galería de una empresa"""
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    return jsonify([]), 200
+
+
+@api.route('/company/<int:company_id>/coverage', methods=['GET'])
+def get_company_coverage(company_id):
+    """Obtener zonas de cobertura de una empresa"""
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    return jsonify([]), 200
+
+
+# STRIPE ENDPOINTS
+
+@api.route('/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    """Crear un PaymentIntent para el formulario de pago integrado"""
+    try:
+        data = request.get_json()
+
+        # Validar datos requeridos
+        amount = data.get('amount')
+        product_name = data.get('product_name', 'Servicio')
+        user_id = data.get('user_id')
+
+        if not amount:
+            return jsonify({'error': 'El monto es requerido'}), 400
+
+        # Convertir a centavos
+        amount_cents = int(float(amount))
+
+        # Crear PaymentIntent en lugar de Checkout Session
+        payment_intent = stripe.PaymentIntent.create(
+            amount=amount_cents,
+            currency='usd',
+            description=product_name,
+            metadata={
+                'product_name': product_name,
+                'user_id': user_id if user_id else 'guest'
+            }
+        )
+
+        return jsonify({
+            'clientSecret': payment_intent.client_secret,
+            'paymentIntentId': payment_intent.id
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@api.route('/payment-success', methods=['POST'])
+def payment_success():
+    """Confirmar que el pago fue exitoso y guardar en BD"""
+    try:
+        data = request.get_json()
+        session_id = data.get('session_id')
+        user_id = data.get('user_id')
+
+        if not session_id:
+            return jsonify({'error': 'session_id es requerido'}), 400
+
+        # Recuperar detalles de la sesión desde Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+
+        if session.payment_status != 'paid':
+            return jsonify({'error': 'El pago no fue completado'}), 400
+
+        # Aquí puedes guardar la transacción en tu BD
+        # Por ejemplo, actualizar el estado del Booking o crear un registro de pago
+
+        return jsonify({
+            'success': True,
+            'message': 'Pago procesado correctamente',
+            'amount': session.amount_total / 100  # Convertir de centavos a dólares
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@api.route('/save-payment', methods=['POST'])
+def save_payment():
+    "Guardar transacción de pago en la BD"
+    try:
+        from api.models import PaymentMethod
+
+        data = request.get_json()
+
+        payment_intent_id = data.get('paymentIntentId')
+        amount = data.get('amount')
+        product_name = data.get('productName', 'Servicio')
+        user_id = data.get('userId')
+        customer_email = data.get('customerEmail')
+        status = data.get('status', 'succeeded')
+
+        if not payment_intent_id or not amount:
+            return jsonify({'error': 'Parámetros requeridos: paymentIntentId, amount'}), 400
+
+        # Convertir centavos a dólares
+        amount_dollars = amount / 100
+
+        # Crear registro de pago
+        payment = PaymentMethod(
+            user_id=user_id,
+            type='CREDIT_CARD',  # Ajusta según el tipo de pago
+            holder_name=customer_email or 'Cliente',
+            stripe_payment_intent_id=payment_intent_id,
+            amount=amount_dollars,
+            currency='USD',
+            description=product_name,
+            customer_email=customer_email,
+            status=status,
+            is_default=False
+        )
+
+        db.session.add(payment)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Pago guardado correctamente',
+            'payment_id': payment.id
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400

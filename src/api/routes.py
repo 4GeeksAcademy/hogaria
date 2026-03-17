@@ -386,7 +386,7 @@ def mark_notification_read(notification_id):
     return jsonify(notification.serialize()), 200
 
 
-@api.route('/register', methods=['POST'])
+@api.route('/register/user', methods=['POST'])
 def register():
     
     data = request.get_json()

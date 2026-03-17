@@ -22,12 +22,13 @@ export const RegisterUser = () => {
     })
   }
 
-  const handleSubmit = (e)=>{
+  const handleClick = (e)=>{
     e.preventDefault()
     if (!user.email || !user.password || !user.name || !user.lastname || !user.phone) {
         alert("All fields are required")
         return
     }
+    console.log(user)
     signup(user, navigate)
   }
 
@@ -86,7 +87,7 @@ export const RegisterUser = () => {
             />
           </div>
 
-          <button className="login-btn" onClick={handleSubmit} type="submit">
+          <button type="submit" className="login-btn" onClick={handleClick} >
             Crear cuenta
           </button>
 

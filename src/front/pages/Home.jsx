@@ -73,7 +73,9 @@ const services = [
     icon: <div className="comercios"><img src={comercios} alt="Comercios" /></div>,
     description: "Comercios en tu ubicacion"
   }
+  
 ];
+
 
 export const Home = () => {
   const navigate = useNavigate()
@@ -97,7 +99,13 @@ export const Home = () => {
               <p>{service.description}</p>
               <button
                 className="service-btn"
-                onClick={() => navigate(`/services/${service.title.toLowerCase()}`)}
+                onClick={() => {
+                  if (service.title === "Comercios") {
+                    navigate("/map");
+                  } else {
+                    navigate(`/services/${service.title.toLowerCase()}`);
+                  }
+                }}
               >
                 Ver más
               </button>

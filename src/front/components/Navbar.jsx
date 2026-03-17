@@ -31,13 +31,16 @@ export const Navbar = () => {
             <img src={logo} alt="Hogaria Logo" />
           </Link>
         </div>
-
         <div className="d-flex align-items-center ms-auto gap-3">
           <div className="nav-auth">
             {!token ? (
               <>
-                <Link to="/login" className="login-link">Iniciar sesión</Link>
-                <Link to="/register" className="register-btn">Registrarse</Link>
+                <Link to="/login" className="login-link">
+                  Iniciar sesión
+                </Link>
+                <Link to="/register" className="register-btn">
+                  Registrarse
+                </Link>
               </>
             ) : (
               <button onClick={handleLogout} className="logout-btn">
@@ -45,19 +48,25 @@ export const Navbar = () => {
               </button>
             )}
           </div>
-          <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220, gap: "0.5rem" }}>
-            <input
-              className="form-control me-3"
-              type="search"
-              placeholder="Buscar..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button className="search-btn" type="submit" style={{ whiteSpace: "nowrap" }}>
-              Buscar
-            </button>
-          </form>
+          {token && (
+            <form
+              className="d-flex"
+              onSubmit={handleSubmit}
+              style={{ minWidth: 220, gap: "0.5rem" }}
+            >
+              <input
+                className="form-control me-3"
+                type="search"
+                placeholder="Buscar..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button className="search-btn" type="submit" style={{ whiteSpace: "nowrap" }}>
+                Buscar
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </nav>

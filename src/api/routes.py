@@ -2,17 +2,13 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from api.models import db, User, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType, Service, City
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token
 from sqlalchemy import select
-from api.models import Service, City
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from flask import request, jsonify
-from flask_jwt_extended import create_access_token
-from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType
 
 
 api = Blueprint('api', __name__)
@@ -29,7 +25,6 @@ def handle_hello():
     }
 
 
-@api.route("/search")
 @api.route("/search")
 def search():
     q = request.args.get("q", "")
@@ -81,8 +76,6 @@ def search():
 
 # Endpoint mock para servicios
 
-
-@api.route("/services")
 @api.route("/services")
 def get_services():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
@@ -95,8 +88,6 @@ def get_services():
 
 # Endpoint mock para ciudades
 
-
-@api.route("/cities")
 @api.route("/cities")
 def get_cities():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
@@ -106,8 +97,6 @@ def get_cities():
         {"id": 3, "nombre": "Valencia"}
     ]
     return jsonify(cities), 200
-
-# DESDE AQUI EMPECE.
 
 
 @api.route("/login", methods=["POST"])

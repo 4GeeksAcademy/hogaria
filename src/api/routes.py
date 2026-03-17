@@ -8,6 +8,11 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token
 from sqlalchemy import select
 from api.models import Service, City
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from flask import request, jsonify
+from flask_jwt_extended import create_access_token
+from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType
 from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType, Company, Opinion
 import stripe
 import os
@@ -30,6 +35,7 @@ def handle_hello():
     }
 
 
+@api.route("/search")
 @api.route("/search")
 def search():
     q = request.args.get("q", "")
@@ -77,9 +83,12 @@ def search():
     return jsonify(results), 200
 
 
+
+
 # Endpoint mock para servicios
 
 
+@api.route("/services")
 @api.route("/services")
 def get_services():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
@@ -93,6 +102,7 @@ def get_services():
 # Endpoint mock para ciudades
 
 
+@api.route("/cities")
 @api.route("/cities")
 def get_cities():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
@@ -133,6 +143,45 @@ def login():
     }), 200
 
 
+@api.route("/google-login", methods=["POST"])
+def google_login():
+
+    token = request.json.get("token")
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            "3815072650-c4055m3c1jvbe74af5jqve8clov2ib9t.apps.googleusercontent.com"
+        )
+
+        email = idinfo["email"]
+        name = idinfo.get("name")
+
+        # buscar usuario en la base de datos
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            user = User(
+                email=email
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        access_token = create_access_token(identity=user.id)
+
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "email": email,
+                "name": name
+            }
+        }), 200
+
+    except ValueError:
+        return jsonify({"msg": "Invalid Google token"}), 401
+
+
 @api.route("/profile", methods=["GET"])
 def get_profile():
     user_id = request.args.get("user_id", type=int)
@@ -143,13 +192,7 @@ def get_profile():
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
-    return jsonify({
-        "id": user.id,
-        "email": user.email,
-        "firstname": user.firstname,
-        "lastname": user.lastname,
-        "phone": user.phone
-    }), 200
+    return jsonify(user.serialize()), 200
 
 
 @api.route('/user/profile', methods=['PUT'])

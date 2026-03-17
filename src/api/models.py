@@ -27,6 +27,16 @@ class User(db.Model):
         "Opinion", back_populates="author")
     history: Mapped[list["Service"]] = relationship(
         "Service", back_populates="user")
+    opinions: Mapped[list["Opinion"]] = relationship(
+        "Opinion", back_populates="author")
+    history: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="user")
+
+    def check_password(self, password):
+        return compare_digest(self.password, password)
+
+    def set_password(self, password):
+        self.password = password
 
     def check_password(self, password):
         return compare_digest(self.password, password)
@@ -46,14 +56,22 @@ class User(db.Model):
         }
 
 
+
+
 class Company(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
     rate: Mapped[float] = mapped_column(nullable=True)
+    opinions: Mapped[list["Opinion"]] = relationship(
+        "Opinion", back_populates="company")
+    services: Mapped[list["Service"]] = relationship(
+        "Service", back_populates="company")
     opinions: Mapped[list["Opinion"]] = relationship(
         "Opinion", back_populates="company")
     services: Mapped[list["Service"]] = relationship(
@@ -69,6 +87,8 @@ class Company(db.Model):
             "opinions": self.opinions,
             "services": self.services
         }
+
+
 
 
 class City(db.Model):
@@ -87,13 +107,16 @@ class City(db.Model):
         }
 
 
+
+
 class Service(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     category: Mapped[str] = mapped_column(SQLEnum(
-
         'Transport', 'Accommodation', 'Food', 'House', name='category_enum'), nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     city_id: Mapped[int] = mapped_column(ForeignKey("city.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("company.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
         ForeignKey("company.id"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
@@ -101,6 +124,8 @@ class Service(db.Model):
     all_day: Mapped[bool] = mapped_column(nullable=False)
     price: Mapped[float] = mapped_column(nullable=False)
     city: Mapped["City"] = relationship("City", back_populates="services")
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="services")
     company: Mapped["Company"] = relationship(
         "Company", back_populates="services")
     user: Mapped["User"] = relationship("User", back_populates="history")
@@ -117,14 +142,20 @@ class Service(db.Model):
         }
 
 
+
+
 class Opinion(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
         ForeignKey("company.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(
+        ForeignKey("company.id"), nullable=False)
     rating: Mapped[float] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(nullable=True)
     author: Mapped["User"] = relationship("User", back_populates="opinions")
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="opinions")
     company: Mapped["Company"] = relationship(
         "Company", back_populates="opinions")
 

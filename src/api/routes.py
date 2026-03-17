@@ -670,3 +670,52 @@ def payment_success():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+
+@api.route('/save-payment', methods=['POST'])
+def save_payment():
+    "Guardar transacción de pago en la BD"
+    try:
+        from api.models import PaymentMethod
+
+        data = request.get_json()
+
+        payment_intent_id = data.get('paymentIntentId')
+        amount = data.get('amount')
+        product_name = data.get('productName', 'Servicio')
+        user_id = data.get('userId')
+        customer_email = data.get('customerEmail')
+        status = data.get('status', 'succeeded')
+
+        if not payment_intent_id or not amount:
+            return jsonify({'error': 'Parámetros requeridos: paymentIntentId, amount'}), 400
+
+        # Convertir centavos a dólares
+        amount_dollars = amount / 100
+
+        # Crear registro de pago
+        payment = PaymentMethod(
+            user_id=user_id,
+            type='CREDIT_CARD',  # Ajusta según el tipo de pago
+            holder_name=customer_email or 'Cliente',
+            stripe_payment_intent_id=payment_intent_id,
+            amount=amount_dollars,
+            currency='USD',
+            description=product_name,
+            customer_email=customer_email,
+            status=status,
+            is_default=False
+        )
+
+        db.session.add(payment)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Pago guardado correctamente',
+            'payment_id': payment.id
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400

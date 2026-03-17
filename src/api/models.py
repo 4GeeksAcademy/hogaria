@@ -203,7 +203,7 @@ class Booking(db.Model):
 
 
 class PaymentMethod(db.Model):
-    "Modelo de Métodos de Pago"
+    "Modelo de Métodos de Pago y Transacciones"
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
 
@@ -212,8 +212,23 @@ class PaymentMethod(db.Model):
     last_four: Mapped[str] = mapped_column(String(4), nullable=True)
     holder_name: Mapped[str] = mapped_column(String(255), nullable=False)
     is_default: Mapped[bool] = mapped_column(Boolean(), default=False)
+
+    # Campos para transacciones de Stripe
+    stripe_payment_intent_id: Mapped[str] = mapped_column(
+        String(255), nullable=True, unique=True)
+    amount: Mapped[float] = mapped_column(Float, nullable=True)  # En dólares
+    currency: Mapped[str] = mapped_column(
+        String(3), default="USD", nullable=True)
+    description: Mapped[str] = mapped_column(String(255), nullable=True)
+    # pending, succeeded, failed, cancelled
+    status: Mapped[str] = mapped_column(
+        String(50), default="pending", nullable=True)
+    customer_email: Mapped[str] = mapped_column(String(120), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user: Mapped["User"] = relationship("User")
 
@@ -225,6 +240,14 @@ class PaymentMethod(db.Model):
             "last_four": self.last_four,
             "holder_name": self.holder_name,
             "is_default": self.is_default,
+            "stripe_payment_intent_id": self.stripe_payment_intent_id,
+            "amount": self.amount,
+            "currency": self.currency,
+            "description": self.description,
+            "status": self.status,
+            "customer_email": self.customer_email,
+            "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else self.created_at,
+            "updated_at": self.updated_at.isoformat() if isinstance(self.updated_at, datetime) else self.updated_at,
         }
 
 

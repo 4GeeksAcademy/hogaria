@@ -86,6 +86,31 @@ export default function CheckoutForm({ amount = 100, productName = 'Servicio' })
       } else if (paymentIntent) {
         console.log('Payment Intent status:', paymentIntent.status);
         if (paymentIntent.status === 'succeeded') {
+          // Guardar el pago en la BD
+          try {
+            const saveResponse = await fetch(
+              `${import.meta.env.VITE_BACKEND_URL}/api/save-payment`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  paymentIntentId: paymentIntent.id,
+                  amount: amount,
+                  productName: productName,
+                  status: paymentIntent.status,
+                }),
+              }
+            );
+
+            if (!saveResponse.ok) {
+              console.warn('Advertencia: Pago completado pero no se guardó en BD');
+            }
+          } catch (saveError) {
+            console.error('Error al guardar pago:', saveError);
+          }
+
           setSuccess(true);
           setLoading(false);
         } else if (paymentIntent.status === 'processing') {

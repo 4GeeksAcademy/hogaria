@@ -22,6 +22,7 @@ export const Login = () => {
 
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("user_id", data.user.id);
+      localStorage.setItem("user_type", data.user.type); // Guardar el tipo: "user" o "company"
 
       navigate("/");
     } catch (error) {

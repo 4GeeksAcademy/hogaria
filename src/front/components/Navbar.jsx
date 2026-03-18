@@ -7,6 +7,7 @@ export const Navbar = () => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const userType = localStorage.getItem("user_type"); // "user" o "company"
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleSubmit = (e) => {
@@ -24,8 +25,15 @@ export const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_id");
+    localStorage.removeItem("user_type");
     navigate("/login");
   };
+
+  // Determinar las rutas según el tipo de usuario
+  const profileRoute = userType === "company" ? "/profile/company" : "/profile";
+  const bookingsRoute = userType === "company" ? "/profile/company?tab=requests" : "/profile?tab=bookings";
+  const bookingsLabel = userType === "company" ? "📬 Solicitudes" : "📅 Reservas";
+  const settingsRoute = userType === "company" ? "/profile/company?tab=settings" : "/profile?tab=settings";
 
   return (
     <nav className="navbar">
@@ -56,7 +64,7 @@ export const Navbar = () => {
                 <div className="dropdown-menu">
                   {/* PERFIL */}
                   <Link
-                    to="/profile"
+                    to={profileRoute}
                     onClick={() => setDropdownOpen(false)}
                   >
                     👤 Perfil
@@ -64,12 +72,25 @@ export const Navbar = () => {
 
                   <div className="dropdown-divider"></div>
 
-                  {/* NOTIFICACIONES */}
+                  {/* RESERVAS / SOLICITUDES */}
+                  {token && (
+                    <>
+                      <Link
+                        to={bookingsRoute}
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        {bookingsLabel}
+                      </Link>
+                      <div className="dropdown-divider"></div>
+                    </>
+                  )}
+
+                  {/* AJUSTES */}
                   <Link
-                    to="/notifications"
+                    to={settingsRoute}
                     onClick={() => setDropdownOpen(false)}
                   >
-                    🔔 Notificaciones
+                    ⚙️ Ajustes
                   </Link>
 
                   <div className="dropdown-divider"></div>

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import UserProfileHeader from "../components/profile/tabs/UserProfileHeader";
 import ProfileTabs from "../components/profile/tabs/ProfileTabs";
 import "../components/profile/styles/profile.css";
 
 export const UserProfile = () => {
-    const [activeTab, setActiveTab] = useState("bookings");
+    const [searchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "bookings");
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);

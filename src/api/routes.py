@@ -77,8 +77,6 @@ def search():
     return jsonify(results), 200
 
 
-
-
 # Endpoint mock para servicios
 
 @api.route("/services")
@@ -92,6 +90,7 @@ def get_services():
     return jsonify(services), 200
 
 # Endpoint mock para ciudades
+
 
 @api.route("/cities")
 def get_cities():
@@ -113,22 +112,39 @@ def login():
     if not email or not password:
         return jsonify({"msg": "Email y password son requeridos"}), 400
 
+    # Verificar si existe en User
     user = db.session.execute(
         select(User).where(User.email == email)
     ).scalar_one_or_none()
 
-    if not user or not user.check_password(password):
-        return jsonify({"msg": "Credenciales inválidas"}), 401
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=user.id)
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "type": "user"
+            }
+        }), 200
 
-    access_token = create_access_token(identity=user.id)
+    # Verificar si existe en Company
+    company = db.session.execute(
+        select(Company).where(Company.email == email)
+    ).scalar_one_or_none()
 
-    return jsonify({
-        "access_token": access_token,
-        "user": {
-            "id": user.id,
-            "email": user.email
-        }
-    }), 200
+    if company and company.check_password(password):
+        access_token = create_access_token(identity=company.id)
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "id": company.id,
+                "email": company.email,
+                "type": "company"
+            }
+        }), 200
+
+    return jsonify({"msg": "Credenciales inválidas"}), 401
 
 
 @api.route("/google-login", methods=["POST"])

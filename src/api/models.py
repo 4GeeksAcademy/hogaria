@@ -59,6 +59,12 @@ class Company(db.Model):
     services: Mapped[list["Service"]] = relationship(
         "Service", back_populates="company")
 
+    def check_password(self, password):
+        return compare_digest(self.password, password)
+
+    def set_password(self, password):
+        self.password = password
+
     def serialize(self):
         return {
             "id": self.id,

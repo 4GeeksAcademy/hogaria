@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import CompanyHeader from "../components/company-profile/CompanyHeader";
 import CompanyTabs from "../components/company-profile/CompanyTabs";
 import "../components/company-profile/styles/company-profile.css";
 
 export const CompanyProfile = () => {
-  const [activeTab, setActiveTab] = useState("services");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "services");
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

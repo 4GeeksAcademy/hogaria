@@ -3,6 +3,7 @@ import Gallery from "./tabs/Gallery";
 import Coverage from "./tabs/Coverage";
 import Opinions from "./tabs/Opinions";
 import Requests from "./tabs/Request";
+import Settings from "../profile/tabs/Settings"; // Reutilizar Settings de usuario
 
 const CompanyTabs = ({ activeTab, setActiveTab, companyId }) => {
   const tabs = [
@@ -11,6 +12,7 @@ const CompanyTabs = ({ activeTab, setActiveTab, companyId }) => {
     { id: "coverage", label: "Zonas de Cobertura", icon: "fas fa-map-marker-alt" },
     { id: "opinions", label: "Opiniones", icon: "fas fa-comments" },
     { id: "requests", label: "Solicitudes", icon: "fas fa-inbox" },
+    { id: "settings", label: "Ajustes", icon: "fas fa-cog" },
   ];
 
   return (
@@ -38,6 +40,7 @@ const CompanyTabs = ({ activeTab, setActiveTab, companyId }) => {
           {activeTab === "coverage" && <Coverage companyId={companyId} />}
           {activeTab === "opinions" && <Opinions companyId={companyId} />}
           {activeTab === "requests" && <Requests companyId={companyId} />}
+          {activeTab === "settings" && <Settings userId={companyId} />}
         </div>
       </div>
     </div>

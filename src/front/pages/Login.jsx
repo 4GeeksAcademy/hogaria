@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../Services/backendServices";
+import { login } from "../Services/backendServices.js";
 import "./Login.css";
 import logo1 from "../assets/img/hogaria-casa.png";
 
@@ -12,20 +12,14 @@ export const Login = () => {
     password: "",
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const data = await login(user);
-
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user_id", data.user.id);
-
-      navigate("/");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+  const handleSubmit = (e) => {
+      e.preventDefault()
+      if (!user.email || !user.password){
+          alert("All fields are required")
+          return
+      }
+      login(user, navigate)
+  }
 
   return (
     <div className="login-container">
@@ -71,7 +65,7 @@ export const Login = () => {
         </form>
 
         <p className="signup">
-          New here? <span onClick={() => navigate("/register/")}>Register</span>
+          New here? <span onClick={() => navigate("/register")}>Register</span>
         </p>
       </div>
     </div>

@@ -25,6 +25,7 @@ def handle_hello():
 
 
 @api.route("/search")
+@jwt_required()
 def search():
     q = request.args.get("q", "")
     service_id = request.args.get("service_id")
@@ -387,7 +388,7 @@ def mark_notification_read(notification_id):
 
 
 @api.route('register/user', methods=['POST'])
-def register():
+def registerUser():
     
     data = request.get_json()
     email = data.get("email")
@@ -410,7 +411,7 @@ def register():
     
     new_user = User(
         email=email,
-        firstname=name,
+        name=name,
         lastname=lastname,
         phone=phone
     )
@@ -420,3 +421,37 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message":"Su usuario ha sido creado exitosamente"}), 201
+
+@api.route('register/company', methods=['POST'])
+def registerCompany():
+    
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+    name = data.get("name")
+    phone = data.get("phone")
+
+    requested_fields = {"email", "password", "name", "phone"}
+
+    missing = [field for field in requested_fields if field not in data]
+    
+    if missing:
+        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+
+    existing_company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
+
+    if existing_company:
+        return jsonify({"error":"Ya existe una empresa con este correo electrónico"}), 400
+
+    new_company = Company(
+        email=email,
+        name=name,
+        password=password,
+        phone=phone
+    )
+
+    new_company.set_password(password)
+
+    db.session.add(new_company)
+    db.session.commit()
+    return jsonify({"message":"Su empresa ha sido creada exitosamente"}), 201

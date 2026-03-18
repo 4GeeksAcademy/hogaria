@@ -1,6 +1,6 @@
 import { useState } from "react"
 import "./Login.css"
-import { signup } from "../Services/backendServices.js";
+import { signupUser } from "../Services/backendServices.js";
 import { useNavigate } from "react-router-dom";
 
 export const RegisterUser = () => {
@@ -12,6 +12,7 @@ export const RegisterUser = () => {
     lastname:"",
     email:"",
     password:"",
+    confirmPassword:"",
     phone:""
   })
 
@@ -22,13 +23,16 @@ export const RegisterUser = () => {
     })
   }
 
-  const handleClick = (e)=>{
+  const handleSubmit = (e)=>{
     e.preventDefault()
     if (!user.email || !user.password || !user.name || !user.lastname || !user.phone) {
         alert("All fields are required")
         return
+    }else if (user.password !== user.confirmPassword) {
+        alert("Passwords do not match")
+        return
     }
-    signup(user, navigate)
+    signupUser(user, navigate)
   }
 
   return(
@@ -39,7 +43,7 @@ export const RegisterUser = () => {
 
         <h2>Registro Usuario</h2>
 
-        <form>
+        <form onSubmit={handleSubmit}>
 
           <div className="input-group">
             <input
@@ -76,6 +80,14 @@ export const RegisterUser = () => {
               name="password"
             />
           </div>
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="Confirmar Contraseña"
+              onChange={handleChange}
+              name="confirmPassword"
+            />
+          </div>
 
           <div className="input-group">
             <input
@@ -86,7 +98,7 @@ export const RegisterUser = () => {
             />
           </div>
 
-          <button type="submit" className="login-btn" onClick={handleClick} >
+          <button type="submit" className="login-btn">
             Crear cuenta
           </button>
 

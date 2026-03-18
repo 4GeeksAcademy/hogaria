@@ -156,8 +156,8 @@ export const SearchForm = ({ onSearch }) => {
       </div>
 
       {/* Botón de enviar */}
-      <div className="row mt-3">
-        <div className="col-12">
+      <div className="row g-3 mt-2">
+        <div className="col-md-4 offset-md-4">
           <button type="submit" className="btn btn-primary w-100">
             Buscar
           </button>

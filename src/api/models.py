@@ -41,11 +41,9 @@ class User(db.Model):
             "firstname": self.firstname,
             "lastname": self.lastname,
             "phone": self.phone,
-            "opinions": self.opinions,
-            "history": self.history
+            "opinions": [opinion.serialize() for opinion in self.opinions],
+            "history": [service.serialize() for service in self.history]
         }
-
-
 
 
 class Company(db.Model):
@@ -73,8 +71,6 @@ class Company(db.Model):
         }
 
 
-
-
 class City(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
@@ -87,8 +83,6 @@ class City(db.Model):
             "name": self.name,
             "services": self.services
         }
-
-
 
 
 class Service(db.Model):
@@ -120,8 +114,6 @@ class Service(db.Model):
         }
 
 
-
-
 class Opinion(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
@@ -145,7 +137,7 @@ class Opinion(db.Model):
 # Modelos de la Página Perfil del Usuario
 
 
-class UserProfile(db.Model): 
+class UserProfile(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user.id"), unique=True, nullable=False)

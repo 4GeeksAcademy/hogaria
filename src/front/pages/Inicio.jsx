@@ -1,6 +1,6 @@
 import "./Inicio.css";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/img/hogaria-casa.png"; 
+import logo from "../assets/img/hogaria-casa.png";
 import fontaneria from "../assets/img/fontaneria.png";
 import electricidad from "../assets/img/electricidad.png";
 import cerrajeria from "../assets/img/cerrajeria.png";
@@ -11,7 +11,7 @@ import mudanza from "../assets/img/mudanza.png";
 import pintura from "../assets/img/pintura.png";
 
 const services = [
-  { icon: <div className="fontaneria"><img src={fontaneria} alt="Fontanería" /></div>,},
+  { icon: <div className="fontaneria"><img src={fontaneria} alt="Fontanería" /></div>, },
   { icon: <div className="electricidad"><img src={electricidad} alt="Electricidad" /></div>, },
   { icon: <div className="cerrajeria"><img src={cerrajeria} alt="Cerrajería" /></div>, },
   { icon: <div className="reformas"><img src={reformas} alt="Reformas" /></div>, },
@@ -34,23 +34,23 @@ export const Inicio = () => {
       <div className="orbit-wrapper">
 
         {/* LOGO */}
-        <div 
+        <div
           className="center-logo"
           onClick={() => navigate("/Home")}
-          >
+        >
           <img src={logo} alt="Hogaria" />
         </div>
 
         {/* SERVICIOS */}
         <div className="orbit">
 
-          {services.map((s,i) => (
-            
+          {services.map((s, i) => (
+
             <div
-            key={i}
-            className="orbit-item"
-            style={{ "--i": i }}
-            onClick={() => navigate("/Home")}
+              key={i}
+              className="orbit-item"
+              style={{ "--i": i }}
+              onClick={() => navigate("/Home")}
             >
 
               <div className="orbit-card">
@@ -66,7 +66,7 @@ export const Inicio = () => {
 
       </div>
 
-    <p className="inicio-subtitle">Tu plataforma de servicios para el hogar o empresa</p>
+      <p className="inicio-subtitle">Tu plataforma de servicios para el hogar o empresa</p>
     </div>
 
   )

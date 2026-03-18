@@ -17,6 +17,19 @@ import { RegisterUser } from "./pages/RegisterUser"
 import { RegisterCompany } from "./pages/RegisterCompany"
 import { CustomerSupport } from "./pages/CustomerSupport"
 import { Review } from "./pages/Review"
+import { Inicio } from "./pages/Inicio";
+import { Legal } from "./pages/Legal";
+import { Map } from "./pages/Map";
+import { ChooseAccount } from "./pages/ChooseAccount";
+import { RegisterUser } from "./pages/RegisterUser";
+import { RegisterCompany } from "./pages/RegisterCompany";
+import { CustomerSupport } from "./pages/CustomerSupport";
+import { Review } from "./pages/Review";
+import { CompanyProfile } from "./pages/CompanyProfile";
+import { CheckoutTest } from "./pages/CheckoutTest";
+import { Checkout } from "./pages/Checkout";
+import { Success } from "./pages/Success";
+import { Cancel } from "./pages/Cancel";
 
 export const router = createBrowserRouter(
     createRoutesFromElements(
@@ -29,18 +42,31 @@ export const router = createBrowserRouter(
       // Root Route: All navigation will start from here.
       <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
 
-      <Route index element={<Home />} />
-      <Route path="search" element={<Search />} />
-      <Route path="single/:theId" element={<Single />} />
-      <Route path="demo" element={<Demo />} />
-      <Route path="profile" element={<UserProfile />} />
-      <Route path="login" element={<Login />} />
-      <Route path="/" element={<Home />} />
+      <Route index element={<Inicio />} />
+      <Route path="/inicio" element={<Inicio />} />
+      <Route path="/search" element={<Search />} />
+      <Route path="/single/:theId" element={<Single />} />
+      <Route path="/demo" element={<Demo />} />
+      <Route path="/profile" element={<UserProfile />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/home" element={<Home />} />
       <Route path="/register" element={<ChooseAccount />} />
       <Route path="/register/user" element={<RegisterUser />} />
       <Route path="/register/company" element={<RegisterCompany />} />
       <Route path="/support" element={<CustomerSupport />} />
       <Route path="/review" element={<Review />} />
+      <Route path="/Legal" element={<Legal />} />
+      <Route path="/map" element={<Map />} />
+      <Route path="register" element={<ChooseAccount />} />
+      <Route path="register/user" element={<RegisterUser />} />
+      <Route path="register/company" element={<RegisterCompany />} />
+      <Route path="support" element={<CustomerSupport />} />
+      <Route path="review" element={<Review />} />
+      <Route path="/profile/company" element={<CompanyProfile />} />
+      <Route path="checkout" element={<Checkout />} />
+      <Route path="checkout-test" element={<CheckoutTest />} />
+      <Route path="success" element={<Success />} />
+      <Route path="cancel" element={<Cancel />} />
     </Route>
 
    

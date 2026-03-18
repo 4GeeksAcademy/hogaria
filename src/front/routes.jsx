@@ -59,7 +59,6 @@ export const router = createBrowserRouter(
       <Route path="cancel" element={<Cancel />} />
     </Route>
 
-   
   
     
   )

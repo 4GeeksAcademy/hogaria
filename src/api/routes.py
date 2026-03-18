@@ -2,13 +2,13 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from api.models import db, User, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType, Service, City
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token
 from sqlalchemy import select
-from api.models import Service, City
-from api.models import db, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 
 api = Blueprint('api', __name__)
@@ -72,8 +72,9 @@ def search():
     return jsonify(results), 200
 
 
-# Endpoint mock para servicios
 
+
+# Endpoint mock para servicios
 
 @api.route("/services")
 def get_services():
@@ -87,7 +88,6 @@ def get_services():
 
 # Endpoint mock para ciudades
 
-
 @api.route("/cities")
 def get_cities():
     # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
@@ -97,8 +97,6 @@ def get_cities():
         {"id": 3, "nombre": "Valencia"}
     ]
     return jsonify(cities), 200
-
-# DESDE AQUI EMPECE.
 
 
 @api.route("/login", methods=["POST"])
@@ -126,6 +124,45 @@ def login():
             "email": user.email
         }
     }), 200
+
+
+@api.route("/google-login", methods=["POST"])
+def google_login():
+
+    token = request.json.get("token")
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            token,
+            requests.Request(),
+            "3815072650-c4055m3c1jvbe74af5jqve8clov2ib9t.apps.googleusercontent.com"
+        )
+
+        email = idinfo["email"]
+        name = idinfo.get("name")
+
+        # buscar usuario en la base de datos
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            user = User(
+                email=email
+            )
+            db.session.add(user)
+            db.session.commit()
+
+        access_token = create_access_token(identity=user.id)
+
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "email": email,
+                "name": name
+            }
+        }), 200
+
+    except ValueError:
+        return jsonify({"msg": "Invalid Google token"}), 401
 
 
 @api.route("/profile", methods=["GET"])

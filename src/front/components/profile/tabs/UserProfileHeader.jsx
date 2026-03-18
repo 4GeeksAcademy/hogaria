@@ -6,7 +6,7 @@ const UserProfileHeader = ({ user }) => {
           {/* Avatar */}
           <div className="col-md-2 text-center">
             <img
-              src={user?.avatar || "https://via.placeholder.com/150"}
+              src={user?.avatar || "https://placehold.co/150"}
               alt={user?.name || "Usuario"}
               className="profile-avatar rounded-circle"
               style={{ width: "150px", height: "150px", objectFit: "cover" }}

@@ -12,8 +12,10 @@ export const Navbar = () => {
     e.preventDefault();
     if (query.trim() !== "") {
       navigate(`/search?q=${encodeURIComponent(query)}`);
-      setQuery("");
+    } else {
+      navigate("/search");
     }
+    setQuery("");
   };
 
   const handleLogout = () => {
@@ -25,7 +27,7 @@ export const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <div className="logo">
-          <Link to="/">
+          <Link to="/home">
             <img src={logo} alt="Hogaria Logo" />
           </Link>
         </div>
@@ -43,15 +45,16 @@ export const Navbar = () => {
               </button>
             )}
           </div>
-          <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220 }}>
+          <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220, gap: "0.5rem" }}>
             <input
-              className="form-control me-2"
+              className="form-control me-3"
               type="search"
               placeholder="Buscar..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              style={{ flex: 1 }}
             />
-            <button className="register-btn" type="submit">
+            <button className="search-btn" type="submit" style={{ whiteSpace: "nowrap" }}>
               Buscar
             </button>
           </form>
@@ -59,5 +62,4 @@ export const Navbar = () => {
       </div>
     </nav>
   );
-
 };

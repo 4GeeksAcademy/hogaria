@@ -1,19 +1,38 @@
 import { useState } from "react"
 import "./Login.css"
+import { signupUser } from "../Services/backendServices.js";
+import { useNavigate } from "react-router-dom";
 
 export const RegisterUser = () => {
+
+  const navigate = useNavigate()
 
   const [user,setUser] = useState({
     name:"",
     lastname:"",
     email:"",
     password:"",
+    confirmPassword:"",
     phone:""
   })
 
+  const handleChange = (e) => {
+    setUser({
+        ...user,
+        [e.target.name]:e.target.value
+    })
+  }
+
   const handleSubmit = (e)=>{
     e.preventDefault()
-    console.log(user)
+    if (!user.email || !user.password || !user.name || !user.lastname || !user.phone) {
+        alert("All fields are required")
+        return
+    }else if (user.password !== user.confirmPassword) {
+        alert("Passwords do not match")
+        return
+    }
+    signupUser(user, navigate)
   }
 
   return(
@@ -30,7 +49,8 @@ export const RegisterUser = () => {
             <input
               type="text"
               placeholder="Nombre"
-              onChange={(e)=>setUser({...user,name:e.target.value})}
+              onChange={handleChange}
+              name="name"
             />
           </div>
 
@@ -38,7 +58,8 @@ export const RegisterUser = () => {
             <input
               type="text"
               placeholder="Apellido"
-              onChange={(e)=>setUser({...user,lastname:e.target.value})}
+              onChange={handleChange}
+              name="lastname"
             />
           </div>
 
@@ -46,7 +67,8 @@ export const RegisterUser = () => {
             <input
               type="email"
               placeholder="Correo"
-              onChange={(e)=>setUser({...user,email:e.target.value})}
+              onChange={handleChange}
+              name="email"
             />
           </div>
 
@@ -54,19 +76,29 @@ export const RegisterUser = () => {
             <input
               type="password"
               placeholder="Contraseña"
-              onChange={(e)=>setUser({...user,password:e.target.value})}
+              onChange={handleChange}
+              name="password"
+            />
+          </div>
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="Confirmar Contraseña"
+              onChange={handleChange}
+              name="confirmPassword"
             />
           </div>
 
           <div className="input-group">
             <input
               type="text"
-              placeholder="Teléfono (opcional)"
-              onChange={(e)=>setUser({...user,phone:e.target.value})}
+              placeholder="Teléfono"
+              onChange={handleChange}
+              name="phone"
             />
           </div>
 
-          <button className="login-btn">
+          <button type="submit" className="login-btn">
             Crear cuenta
           </button>
 

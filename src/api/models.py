@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, Enum as SQLEnum, Float, Integer, Column, ForeignKey, Table, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+from flask_bcrypt import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
 
@@ -17,10 +18,9 @@ service_city = Table(
 
 class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(
-        String(120), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(nullable=False)
-    firstname: Mapped[str] = mapped_column(nullable=False)
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(nullable=False)
+    name: Mapped[str] = mapped_column(nullable=False)
     lastname: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
     opinions: Mapped[list["Opinion"]] = relationship(
@@ -28,17 +28,17 @@ class User(db.Model):
     history: Mapped[list["Service"]] = relationship(
         "Service", back_populates="user")
 
-    def check_password(self, password):
-        return compare_digest(self.password, password)
-
     def set_password(self, password):
-        self.password = password
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+                return check_password_hash(self.password_hash, password)
 
     def serialize(self):
         return {
             "id": self.id,
             "email": self.email,
-            "firstname": self.firstname,
+            "name": self.name,
             "lastname": self.lastname,
             "phone": self.phone,
             "opinions": [opinion.serialize() for opinion in self.opinions],
@@ -58,6 +58,12 @@ class Company(db.Model):
         "Opinion", back_populates="company")
     services: Mapped[list["Service"]] = relationship(
         "Service", back_populates="company")
+    
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     def check_password(self, password):
         return compare_digest(self.password, password)
@@ -90,11 +96,20 @@ class City(db.Model):
             "services": self.services
         }
 
+class ServiceCategory(enum.Enum):
+    CERRAJERÍA = "cerrajería"
+    CLIMATIZACIÓN = "climatización"
+    FONTANERÍA = "fontanería"
+    COMERCIOS = "comercios"
+    ELECTRICIDAD = "electricidad"
+    REFORMAS = "reformas"
+    LIMPIEZA = "limpieza"
+    MUDANZAS = "mudanzas"
+    CATEGORÍA = "categoría"
 
 class Service(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    category: Mapped[str] = mapped_column(SQLEnum(
-        'Transport', 'Accommodation', 'Food', 'House', name='category_enum'), nullable=False)
+    category: Mapped[str] = mapped_column(SQLEnum(ServiceCategory), default=ServiceCategory.CATEGORÍA, nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     city_id: Mapped[int] = mapped_column(ForeignKey("city.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
@@ -123,13 +138,11 @@ class Service(db.Model):
 class Opinion(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    company_id: Mapped[int] = mapped_column(
-        ForeignKey("company.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(ForeignKey("company.id"), nullable=False)
     rating: Mapped[float] = mapped_column(nullable=False)
     comment: Mapped[str] = mapped_column(nullable=True)
     author: Mapped["User"] = relationship("User", back_populates="opinions")
-    company: Mapped["Company"] = relationship(
-        "Company", back_populates="opinions")
+    company: Mapped["Company"] = relationship("Company", back_populates="opinions")
 
     def serialize(self):
         return {
@@ -209,7 +222,6 @@ class PaymentMethod(db.Model):
     "Modelo de Métodos de Pago y Transacciones"
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-
     type: Mapped[PaymentMethodType] = mapped_column(
         SQLEnum(PaymentMethodType), nullable=False)
     last_four: Mapped[str] = mapped_column(String(4), nullable=True)

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../Services/backendServices";
+import { login } from "../Services/backendServices.js";
 import "./Login.css";
 import logo1 from "../assets/img/hogaria-casa.png";
 import { GoogleLogin } from "@react-oauth/google";
@@ -14,6 +14,14 @@ export const Login = () => {
     password: "",
   });
 
+  const handleSubmit = (e) => {
+      e.preventDefault()
+      if (!user.email || !user.password){
+          alert("All fields are required")
+          return
+      }
+      login(user, navigate)
+  }
   const handleSubmit = async (e) => {
     e.preventDefault();
 

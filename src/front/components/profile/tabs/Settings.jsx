@@ -54,7 +54,7 @@ const Settings = ({ userId }) => {
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/user/profile?user_id=${userId}`,
+                `${import.meta.env.VITE_BACKEND_URL}/api/user/profile?user_id=${userId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -89,7 +89,7 @@ const Settings = ({ userId }) => {
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/user/change-password?user_id=${userId}`,
+                `${import.meta.env.VITE_BACKEND_URL}/api/user/change-password?user_id=${userId}`,
                 {
                     method: "POST",
                     headers: {

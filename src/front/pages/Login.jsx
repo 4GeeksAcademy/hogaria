@@ -22,21 +22,6 @@ export const Login = () => {
       }
       login(user, navigate)
   }
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      const data = await login(user);
-
-      localStorage.setItem("token", data.access_token);
-      localStorage.setItem("user_id", data.user.id);
-      localStorage.setItem("user_type", data.user.type); // Guardar el tipo: "user" o "company"
-
-      navigate("/");
-    } catch (error) {
-      alert(error.message);
-    }
-  };
 
   const handleGoogleLogin = async (credentialResponse) => {
 

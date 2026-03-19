@@ -21,6 +21,9 @@ sqlalchemy = "*"
 flask-jwt-extended = "*"
 flask-bcrypt = "*"
 flask-cors = "*"
+stripe = "*"
+google-auth = "*"
+google-auth-oauthlib = "*"
 
 [requires]
 python_version = "3.13"

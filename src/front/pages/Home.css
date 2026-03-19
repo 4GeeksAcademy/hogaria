@@ -8,7 +8,7 @@
 }
 
 .home-title {
-  font-size: 32px;
+  font-size: 35px;
   margin-bottom: 50px;
   color: #ebebeb;
 }
@@ -118,7 +118,7 @@
 
 .commerce-card {
   grid-column: 2 / span 2;
-  border: 2px solid #10b981;
+  border: 2px;
   transform: scale(1.02);
 }
 
@@ -142,26 +142,29 @@
   }
 }
 .home-extra{
+  border-top:3px solid rgba(255,255,255,0.2);
+  padding-top:40px;
   margin-top:60px;
   display:flex;
   justify-content:center;
-  gap:25px;
+  gap:40px;
 }
 
 .extra-card{
-  width:180px;
-  padding:15px;
-  border-radius:10px;
+  width:200px;
+  padding:20px;
+  border-radius:12px;
   text-align:center;
   cursor:pointer;
-  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  background:#ffffff;
+  border:2px solid #e2e8f0;
   transition:0.3s;
-  background:white;
 }
 
 .extra-card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 12px 25px rgba(0,0,0,0.12);
+  transform:translateY(-6px) scale(1.03);
+  box-shadow:0 15px 30px rgba(0,0,0,0.15);
+  border-color:#10b981;
 }
 
 .extra-card h3{
@@ -173,14 +176,9 @@
   font-size:12px;
   color:#64748b;
 }
-.Atencion img { 
-  width: 30px;
-  height: 30px;
-  margin-bottom: 15px;
-
-}
+.Atencion img,
 .valoracion img{
-  width: 30px;
-  height: 30px;
-  margin-bottom: 15px;
+  width:40px;
+  height:40px;
+  margin-bottom:10px;
 }

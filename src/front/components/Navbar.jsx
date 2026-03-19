@@ -12,8 +12,10 @@ export const Navbar = () => {
     e.preventDefault();
     if (query.trim() !== "") {
       navigate(`/search?q=${encodeURIComponent(query)}`);
-      setQuery("");
+    } else {
+      navigate("/search");
     }
+    setQuery("");
   };
 
   const handleLogout = () => {
@@ -25,17 +27,20 @@ export const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <div className="logo">
-          <Link to="/">
+          <Link to="/home">
             <img src={logo} alt="Hogaria Logo" />
           </Link>
         </div>
-
         <div className="d-flex align-items-center ms-auto gap-3">
           <div className="nav-auth">
             {!token ? (
               <>
-                <Link to="/login" className="login-link">Iniciar sesión</Link>
-                <Link to="/register" className="register-btn">Registrarse</Link>
+                <Link to="/login" className="login-link">
+                  Iniciar sesión
+                </Link>
+                <Link to="/register" className="register-btn">
+                  Registrarse
+                </Link>
               </>
             ) : (
               <button onClick={handleLogout} className="logout-btn">
@@ -43,21 +48,27 @@ export const Navbar = () => {
               </button>
             )}
           </div>
-          <form className="d-flex" onSubmit={handleSubmit} style={{ minWidth: 220 }}>
-            <input
-              className="form-control me-2"
-              type="search"
-              placeholder="Buscar..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            <button className="register-btn" type="submit">
-              Buscar
-            </button>
-          </form>
+          {token && (
+            <form
+              className="d-flex"
+              onSubmit={handleSubmit}
+              style={{ minWidth: 220, gap: "0.5rem" }}
+            >
+              <input
+                className="form-control me-3"
+                type="search"
+                placeholder="Buscar..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button className="search-btn" type="submit" style={{ whiteSpace: "nowrap" }}>
+                Buscar
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </nav>
   );
-
 };

@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../Services/backendServices.js";
 import "./Login.css";
 import logo1 from "../assets/img/hogaria-casa.png";
+import { GoogleLogin } from "@react-oauth/google";
 
 export const Login = () => {
+
   const navigate = useNavigate();
 
   const [user, setUser] = useState({
@@ -20,14 +22,67 @@ export const Login = () => {
       }
       login(user, navigate)
   }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const data = await login(user);
+
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("user_id", data.user.id);
+
+      navigate("/");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const handleGoogleLogin = async (credentialResponse) => {
+
+    try {
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/google-login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            token: credentialResponse.credential
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.msg || "Google login failed");
+      }
+
+      localStorage.setItem("token", data.access_token);
+
+      navigate("/");
+
+    } catch (error) {
+      console.error(error);
+      alert("Google login error");
+    }
+
+  };
 
   return (
+
     <div className="login-container">
+
       <div className="login-card">
+
         <div className="logoCasa">
           <img src={logo1} alt="Hogaria Casa" />
         </div>
+
         <form onSubmit={handleSubmit}>
+
           <div className="input-group">
             <input
               type="email"
@@ -61,13 +116,30 @@ export const Login = () => {
             LOGIN
           </button>
 
-          <p className="forgot">Forgot your password?</p>
         </form>
 
+        <p style={{ margin: "15px 0" }}>or</p>
+
+        {/* LOGIN GOOGLE */}
+        <div className="googlelogin">
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </div>
+
         <p className="signup">
-          New here? <span onClick={() => navigate("/register")}>Register</span>
+          New here?{" "}
+          <span onClick={() => navigate("/register/")}>
+            Register
+          </span>
         </p>
+
       </div>
+
     </div>
+
   );
 };

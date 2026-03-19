@@ -1,10 +1,5 @@
 """empty message
 
-<<<<<<<< HEAD:migrations/versions/3f1cb5732f84_.py
-Revision ID: 3f1cb5732f84
-Revises: 
-Create Date: 2026-03-17 23:29:47.691728
-========
 <<<<<<<< HEAD:migrations/versions/76357bb66221_.py
 Revision ID: 76357bb66221
 Revises: 
@@ -14,7 +9,6 @@ Revision ID: f7dfd00610f3
 Revises: 
 Create Date: 2026-03-16 18:29:13.627921
 >>>>>>>> develop:migrations/versions/f7dfd00610f3_.py
->>>>>>>> 0077477b185a60aba774aa4595cb84ce8d6a4548:migrations/versions/76357bb66221_.py
 
 """
 from alembic import op
@@ -22,15 +16,11 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-<<<<<<<< HEAD:migrations/versions/3f1cb5732f84_.py
-revision = '3f1cb5732f84'
-========
 <<<<<<<< HEAD:migrations/versions/76357bb66221_.py
 revision = '76357bb66221'
 ========
 revision = 'f7dfd00610f3'
 >>>>>>>> develop:migrations/versions/f7dfd00610f3_.py
->>>>>>>> 0077477b185a60aba774aa4595cb84ce8d6a4548:migrations/versions/76357bb66221_.py
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -56,8 +46,8 @@ def upgrade():
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
-    sa.Column('password_hash', sa.String(), nullable=False),
-    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('password', sa.String(), nullable=False),
+    sa.Column('firstname', sa.String(), nullable=False),
     sa.Column('lastname', sa.String(), nullable=False),
     sa.Column('phone', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
@@ -114,7 +104,7 @@ def upgrade():
     )
     op.create_table('service',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('category', sa.Enum('CERRAJERÍA', 'CLIMATIZACIÓN', 'FONTANERÍA', 'COMERCIOS', 'ELECTRICIDAD', 'REFORMAS', 'LIMPIEZA', 'MUDANZAS', 'CATEGORÍA', name='servicecategory'), nullable=False),
+    sa.Column('category', sa.Enum('Transport', 'Accommodation', 'Food', 'House', name='category_enum'), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('city_id', sa.Integer(), nullable=False),
     sa.Column('company_id', sa.Integer(), nullable=False),

@@ -1,20 +1,8 @@
 """empty message
 
-<<<<<<<< HEAD:migrations/versions/3f1cb5732f84_.py
-Revision ID: 3f1cb5732f84
+Revision ID: 10b588d51bc3
 Revises: 
-Create Date: 2026-03-17 23:29:47.691728
-========
-<<<<<<<< HEAD:migrations/versions/76357bb66221_.py
-Revision ID: 76357bb66221
-Revises: 
-Create Date: 2026-03-17 12:18:31.141412
-========
-Revision ID: f7dfd00610f3
-Revises: 
-Create Date: 2026-03-16 18:29:13.627921
->>>>>>>> develop:migrations/versions/f7dfd00610f3_.py
->>>>>>>> 0077477b185a60aba774aa4595cb84ce8d6a4548:migrations/versions/76357bb66221_.py
+Create Date: 2026-03-19 19:36:53.805075
 
 """
 from alembic import op
@@ -22,15 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-<<<<<<<< HEAD:migrations/versions/3f1cb5732f84_.py
-revision = '3f1cb5732f84'
-========
-<<<<<<<< HEAD:migrations/versions/76357bb66221_.py
-revision = '76357bb66221'
-========
-revision = 'f7dfd00610f3'
->>>>>>>> develop:migrations/versions/f7dfd00610f3_.py
->>>>>>>> 0077477b185a60aba774aa4595cb84ce8d6a4548:migrations/versions/76357bb66221_.py
+revision = '10b588d51bc3'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -100,17 +80,9 @@ def upgrade():
     sa.Column('last_four', sa.String(length=4), nullable=True),
     sa.Column('holder_name', sa.String(length=255), nullable=False),
     sa.Column('is_default', sa.Boolean(), nullable=False),
-    sa.Column('stripe_payment_intent_id', sa.String(length=255), nullable=True),
-    sa.Column('amount', sa.Float(), nullable=True),
-    sa.Column('currency', sa.String(length=3), nullable=True),
-    sa.Column('description', sa.String(length=255), nullable=True),
-    sa.Column('status', sa.String(length=50), nullable=True),
-    sa.Column('customer_email', sa.String(length=120), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('stripe_payment_intent_id')
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('service',
     sa.Column('id', sa.Integer(), nullable=False),

@@ -32,12 +32,11 @@
   border-radius: 8px;
   border: none;
   outline: none;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  color: black;
 }
 
 .input-group input::placeholder {
-  color: #ddd;
+  color: rgb(167, 166, 166);
 }
 
 .remember {
@@ -83,4 +82,7 @@
 .logoCasa img {
   width: 50px;
   margin-bottom: 25px;
+}
+.googlelogin img {
+  border-radius: 8px;
 }

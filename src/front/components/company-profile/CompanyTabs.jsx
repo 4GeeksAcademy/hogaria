@@ -40,7 +40,7 @@ const CompanyTabs = ({ activeTab, setActiveTab, companyId }) => {
           {activeTab === "coverage" && <Coverage companyId={companyId} />}
           {activeTab === "opinions" && <Opinions companyId={companyId} />}
           {activeTab === "requests" && <Requests companyId={companyId} />}
-          {activeTab === "settings" && <Settings userId={companyId} />}
+          {activeTab === "settings" && <Settings userId={companyId} entityType="company" />}
         </div>
       </div>
     </div>

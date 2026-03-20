@@ -13,7 +13,6 @@ import os
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 
 
-
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
@@ -92,7 +91,6 @@ def get_services():
     return jsonify(services), 200
 
 # Endpoint mock para ciudades
-
 
 
 @api.route("/cities", methods=["GET"])
@@ -192,69 +190,135 @@ def google_login():
 @api.route("/profile", methods=["GET"])
 def get_profile():
     user_id = request.args.get("user_id", type=int)
+    entity_type = request.args.get("entity_type", "user")  # 'user' o 'company'
 
     if not user_id:
         return jsonify({"msg": "user_id es requerido"}), 400
 
-    user = User.query.get(user_id)
+    # Buscar la entidad según el tipo
+    if entity_type == 'company':
+        user = Company.query.get(user_id)
+    else:
+        user = User.query.get(user_id)
+
     if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+        entity_name = "Empresa" if entity_type == 'company' else "Usuario"
+        return jsonify({"error": f"{entity_name} no encontrado"}), 404
     return jsonify(user.serialize()), 200
 
 
 @api.route('/user/profile', methods=['PUT'])
 def update_user_profile():
-    "Actualizar perfil del usuario"
+    """Actualizar perfil del usuario o empresa (email, teléfono)"""
+    try:
+        data = request.json
+        user_id = request.args.get('user_id', type=int)
+        entity_type = request.args.get(
+            'entity_type', 'user')  # 'user' o 'company'
 
-    data = request.json
-    user_id = request.args.get('user_id', type=int)
+        if not user_id:
+            return jsonify({"error": "user_id requerido"}), 400
 
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
+        # Validar que hay datos para actualizar
+        if not data:
+            return jsonify({"error": "Datos requeridos"}), 400
 
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+        # Buscar la entidad según el tipo
+        if entity_type == 'company':
+            user = Company.query.get(user_id)
+        else:
+            user = User.query.get(user_id)
 
-    # Actualizar campos
-    name = data.get('name')
-    if name:
-        parts = name.strip().split(" ", 1)
-        user.firstname = parts[0]
-        if len(parts) > 1:
-            user.lastname = parts[1]
-    user.phone = data.get('phone', user.phone)
-    user.email = data.get('email', user.email)
+        if not user:
+            entity_name = "Empresa" if entity_type == 'company' else "Usuario"
+            return jsonify({"error": f"{entity_name} no encontrado"}), 404
 
-    db.session.commit()
-    return jsonify(user.serialize()), 200
+        # Actualizar email si se proporciona
+        if data.get('email'):
+            # Validar que el email no esté ya registrado por otra entidad del mismo tipo
+            if entity_type == 'company':
+                existing = Company.query.filter_by(
+                    email=data.get('email')).first()
+            else:
+                existing = User.query.filter_by(
+                    email=data.get('email')).first()
+
+            if existing and existing.id != user_id:
+                return jsonify({"error": "El email ya está registrado"}), 409
+            user.email = data.get('email')
+
+        # Actualizar teléfono si se proporciona
+        if data.get('phone'):
+            user.phone = data.get('phone')
+
+        # Actualizar nombre si se proporciona (solo para usuarios)
+        if data.get('name') and entity_type == 'user':
+            parts = data.get('name').strip().split(" ", 1)
+            user.firstname = parts[0]
+            if len(parts) > 1:
+                user.lastname = parts[1]
+        # Para empresas, solo actualizar el name
+        elif data.get('name') and entity_type == 'company':
+            user.name = data.get('name')
+
+        db.session.commit()
+        entity_name = "Empresa" if entity_type == 'company' else "Usuario"
+        print(f"✅ Perfil de {entity_name} actualizado (ID: {user_id})")
+        return jsonify(user.serialize()), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error al actualizar perfil: {str(e)}")
+        return jsonify({"error": f"Error al actualizar perfil: {str(e)}"}), 500
 
 
 @api.route('/user/change-password', methods=['POST'])
 def change_password():
+    """Cambiar contraseña del usuario o empresa"""
+    try:
+        data = request.json
+        user_id = request.args.get('user_id', type=int)
+        entity_type = request.args.get(
+            'entity_type', 'user')  # 'user' o 'company'
 
-    data = request.json
-    user_id = request.args.get('user_id', type=int)
+        if not user_id:
+            return jsonify({"error": "user_id requerido"}), 400
 
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
+        # Buscar la entidad según el tipo
+        if entity_type == 'company':
+            user = Company.query.get(user_id)
+        else:
+            user = User.query.get(user_id)
 
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+        if not user:
+            entity_name = "Empresa" if entity_type == 'company' else "Usuario"
+            return jsonify({"error": f"{entity_name} no encontrado"}), 404
 
-     # Validar contraseña actual con hash
+        # Validar contraseña actual
+        current_password = data.get('current_password')
+        new_password = data.get('new_password')
 
-    current_password = data.get('current_password')
-    new_password = data.get('new_password')
+        if not current_password or not new_password:
+            return jsonify({"error": "Contraseña actual y nueva requeridas"}), 400
 
-    if not current_password or not new_password:
-        return jsonify({"error": "Contraseña actual y nueva requeridas"}), 400
+        # Validar que la contraseña actual sea correcta
+        if not user.check_password(current_password):
+            return jsonify({"error": "Contraseña actual incorrecta"}), 401
 
-    user.set_password(new_password)
-    db.session.commit()
+        # No permitir que la nueva contraseña sea igual a la actual
+        if current_password == new_password:
+            return jsonify({"error": "La nueva contraseña no puede ser igual a la actual"}), 400
 
-    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+        # Actualizar contraseña
+        user.set_password(new_password)
+        db.session.commit()
+
+        entity_name = "Empresa" if entity_type == 'company' else "Usuario"
+        print(f"✅ Contraseña actualizada para {entity_name} (ID: {user_id})")
+        return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error al cambiar contraseña: {str(e)}")
+        return jsonify({"error": f"Error al cambiar contraseña: {str(e)}"}), 500
 
 
 @api.route('/user/bookings', methods=['GET'])
@@ -360,59 +424,120 @@ def get_payment_methods():
 @api.route('/user/payment-methods', methods=['POST'])
 def create_payment_method():
     """Crear un nuevo método de pago"""
-    data = request.json
-    user_id = request.args.get('user_id', type=int)
+    try:
+        data = request.json
+        user_id = request.args.get('user_id', type=int)
 
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
+        # Intentar obtener usuario de JWT si está disponible
+        current_user_id = None
+        try:
+            if request.headers.get('Authorization'):
+                current_user_id = get_jwt_identity()
+        except Exception as jwt_err:
+            # Si JWT falla, permitir continuar si hay user_id en query
+            print(f"JWT Error (permitido): {jwt_err}")
+            pass
 
-    # Validar datos
-    required_fields = ['type', 'holder_name']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"Campo '{field}' requerido"}), 400
+        # Usar JWT identity si existe, sino usar query param
+        if current_user_id:
+            if user_id and user_id != current_user_id:
+                return jsonify({"error": "No autorizado para crear métodos de otro usuario"}), 403
+            user_id = current_user_id
+        elif not user_id:
+            return jsonify({"error": "user_id requerido en query param o token JWT inválido"}), 400
 
-    payment_method = PaymentMethod(
-        user_id=user_id,
-        type=PaymentMethodType(data.get('type')),
-        last_four=data.get('last_four'),
-        holder_name=data.get('holder_name'),
-        is_default=data.get('is_default', False)
-    )
+        # Validar datos
+        if not data:
+            return jsonify({"error": "Datos requeridos"}), 400
 
-    db.session.add(payment_method)
-    db.session.commit()
+        required_fields = ['type', 'holder_name']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({"error": f"Campo '{field}' requerido"}), 400
 
-    return jsonify(payment_method.serialize()), 201
+        # Validar tipo de pago
+        payment_type = data.get('type')
+        valid_types = [t.value for t in PaymentMethodType]
+        if payment_type not in valid_types:
+            return jsonify({"error": f"Tipo '{payment_type}' inválido. Válidos: {', '.join(valid_types)}"}), 400
+
+        # Crear método de pago
+        payment_method = PaymentMethod(
+            user_id=user_id,
+            # Convertir valor string a enum
+            type=PaymentMethodType(payment_type),
+            last_four=data.get('last_four', ''),
+            holder_name=data.get('holder_name'),
+            is_default=data.get('is_default', False)
+        )
+
+        db.session.add(payment_method)
+        db.session.commit()
+
+        print(f"✅ Método de pago creado para usuario {user_id}")
+        return jsonify(payment_method.serialize()), 201
+    except ValueError as ve:
+        db.session.rollback()
+        print(f"❌ ValueError: {str(ve)}")
+        return jsonify({"error": f"Error en validación: {str(ve)}"}), 400
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error inesperado: {str(e)}")
+        return jsonify({"error": f"Error al crear método de pago: {str(e)}"}), 500
 
 
 @api.route('/user/payment-methods/<int:method_id>', methods=['PUT'])
 def update_payment_method(method_id):
     """Actualizar un método de pago"""
-    data = request.json
-    method = PaymentMethod.query.get(method_id)
+    try:
+        data = request.json
+        method = PaymentMethod.query.get(method_id)
 
-    if not method:
-        return jsonify({"error": "Método de pago no encontrado"}), 404
+        if not method:
+            return jsonify({"error": "Método de pago no encontrado"}), 404
 
-    method.holder_name = data.get('holder_name', method.holder_name)
-    method.is_default = data.get('is_default', method.is_default)
+        # Actualizar campos básicos
+        method.holder_name = data.get('holder_name', method.holder_name)
+        method.is_default = data.get('is_default', method.is_default)
 
-    db.session.commit()
-    return jsonify(method.serialize()), 200
+        # Actualizar tarjeta si se proporciona nueva
+        if data.get('card_number'):
+            # Validar tipo de pago
+            payment_type = data.get('type', 'credit_card')
+            valid_types = [t.value for t in PaymentMethodType]
+            if payment_type not in valid_types:
+                return jsonify({"error": f"Tipo '{payment_type}' inválido. Válidos: {', '.join(valid_types)}"}), 400
+
+            method.type = PaymentMethodType(payment_type)
+            method.last_four = data.get('last_four', '')
+            # No guardamos card_number completo por seguridad
+
+        db.session.commit()
+        print(f"✅ Método de pago actualizado: {method_id}")
+        return jsonify(method.serialize()), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error inesperado: {str(e)}")
+        return jsonify({"error": f"Error al actualizar método de pago: {str(e)}"}), 500
 
 
 @api.route('/user/payment-methods/<int:method_id>', methods=['DELETE'])
 def delete_payment_method(method_id):
     """Eliminar un método de pago"""
-    method = PaymentMethod.query.get(method_id)
-    if not method:
-        return jsonify({"error": "Método de pago no encontrado"}), 404
+    try:
+        method = PaymentMethod.query.get(method_id)
+        if not method:
+            return jsonify({"error": "Método de pago no encontrado"}), 404
 
-    db.session.delete(method)
-    db.session.commit()
+        db.session.delete(method)
+        db.session.commit()
+        print(f"✅ Método de pago eliminado: {method_id}")
 
-    return jsonify({"message": "Método de pago eliminado"}), 200
+        return jsonify({"message": "Método de pago eliminado"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error inesperado: {str(e)}")
+        return jsonify({"error": f"Error al eliminar método de pago: {str(e)}"}), 500
 
 
 # ENDPOINTS DE NOTIFICACIONES
@@ -773,7 +898,7 @@ def save_payment():
 
 @api.route('register/user', methods=['POST'])
 def registerUser():
-    
+
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
@@ -784,15 +909,16 @@ def registerUser():
     requested_fields = {"email", "password", "name", "lastname", "phone"}
 
     missing = [field for field in requested_fields if field not in data]
-    
-    if missing:
-        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
 
-    existing_user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    if missing:
+        return jsonify({"error": "Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+
+    existing_user = db.session.execute(select(User).where(
+        User.email == email)).scalar_one_or_none()
 
     if existing_user:
-        return jsonify({"error":"Ya existe un usuario con este correo electrónico"}), 400
-    
+        return jsonify({"error": "Ya existe un usuario con este correo electrónico"}), 400
+
     new_user = User(
         email=email,
         name=name,
@@ -804,11 +930,12 @@ def registerUser():
 
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"message":"Su usuario ha sido creado exitosamente"}), 201
+    return jsonify({"message": "Su usuario ha sido creado exitosamente"}), 201
+
 
 @api.route('register/company', methods=['POST'])
 def registerCompany():
-    
+
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
@@ -818,14 +945,15 @@ def registerCompany():
     requested_fields = {"email", "password", "name", "phone"}
 
     missing = [field for field in requested_fields if field not in data]
-    
-    if missing:
-        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
 
-    existing_company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
+    if missing:
+        return jsonify({"error": "Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+
+    existing_company = db.session.execute(select(Company).where(
+        Company.email == email)).scalar_one_or_none()
 
     if existing_company:
-        return jsonify({"error":"Ya existe una empresa con este correo electrónico"}), 400
+        return jsonify({"error": "Ya existe una empresa con este correo electrónico"}), 400
 
     new_company = Company(
         email=email,
@@ -838,4 +966,4 @@ def registerCompany():
 
     db.session.add(new_company)
     db.session.commit()
-    return jsonify({"message":"Su empresa ha sido creada exitosamente"}), 201
+    return jsonify({"message": "Su empresa ha sido creada exitosamente"}), 201

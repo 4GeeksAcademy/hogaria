@@ -1,6 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
+import re
 import os
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
@@ -22,7 +23,7 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-#setup the flask-jwt-extended extension
+# setup the flask-jwt-extended extension
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 jwt = JWTManager(app)
 
@@ -41,9 +42,26 @@ MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
 jwt = JWTManager(app)
 
-# Configure CORS
-CORS(app, origins=["*"], supports_credentials=True, allow_headers=["*"],
-     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+# Configure CORS - Permitir desarrollo local y dominios específicos
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+# Agregar dominios de GitHub Codespaces
+if os.getenv('GITHUB_CODESPACES') == 'true':
+    # En Codespaces, los puertos están en *.app.github.dev
+    codespaces_pattern = re.compile(r'https://.*-300[0-9]\.app\.github\.dev')
+    # No podemos usar regex en CORS, así que permitimos todos los .app.github.dev
+    allowed_origins.append('https://*.app.github.dev')
+
+CORS(app,
+     origins=allowed_origins + ['*'],  # Fallback a * para desarrollo
+     supports_credentials=True,
+     allow_headers=["*", "Authorization", "Content-Type"],
+     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+     expose_headers=["Content-Type"])
 
 # add the admin
 setup_admin(app)

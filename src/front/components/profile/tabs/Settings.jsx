@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const Settings = ({ userId }) => {
+const Settings = ({ userId, entityType = "user" }) => {
     const [formData, setFormData] = useState({
         email: "",
         phone: "",
@@ -11,15 +11,21 @@ const Settings = ({ userId }) => {
 
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
+    const [loadingProfile, setLoadingProfile] = useState(false);
+    const [loadingPassword, setLoadingPassword] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
+                // Limpiar URL backend
+                const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+                const token = localStorage.getItem('token');
+
                 const response = await fetch(
-                    `${import.meta.env.VITE_BACKEND_URL}/api/profile?user_id=${userId}`,
+                    `${backendUrl}/api/profile?user_id=${userId}&entity_type=${entityType}`,
                     {
                         headers: {
-                            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
                         },
                     }
                 );
@@ -37,7 +43,7 @@ const Settings = ({ userId }) => {
         };
 
         if (userId) fetchUserData();
-    }, [userId]);
+    }, [userId, entityType]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -51,15 +57,20 @@ const Settings = ({ userId }) => {
         e.preventDefault();
         setError("");
         setMessage("");
+        setLoadingProfile(true);
 
         try {
+            // Limpiar URL backend
+            const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+            const token = localStorage.getItem('token');
+
             const response = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/api/user/profile?user_id=${userId}`,
+                `${backendUrl}/api/user/profile?user_id=${userId}&entity_type=${entityType}`,
                 {
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
                         email: formData.email,
@@ -68,12 +79,19 @@ const Settings = ({ userId }) => {
                 }
             );
 
-            if (!response.ok) throw new Error("Error actualizando perfil");
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || "Error actualizando perfil");
+            }
 
+            console.log("✅ Perfil actualizado correctamente");
             setMessage("✓ Perfil actualizado correctamente");
             setTimeout(() => setMessage(""), 3000);
         } catch (err) {
+            console.error("❌ Error:", err.message);
             setError(`✗ ${err.message}`);
+        } finally {
+            setLoadingProfile(false);
         }
     };
 
@@ -81,20 +99,32 @@ const Settings = ({ userId }) => {
         e.preventDefault();
         setError("");
         setMessage("");
+        setLoadingPassword(true);
 
         if (formData.newPassword !== formData.confirmPassword) {
             setError("Las contraseñas no coinciden");
+            setLoadingPassword(false);
+            return;
+        }
+
+        if (!formData.currentPassword || !formData.newPassword) {
+            setError("Todos los campos de contraseña son requeridos");
+            setLoadingPassword(false);
             return;
         }
 
         try {
+            // Limpiar URL backend
+            const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
+            const token = localStorage.getItem('token');
+
             const response = await fetch(
-                `${import.meta.env.VITE_BACKEND_URL}/api/user/change-password?user_id=${userId}`,
+                `${backendUrl}/api/user/change-password?user_id=${userId}&entity_type=${entityType}`,
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
                     },
                     body: JSON.stringify({
                         current_password: formData.currentPassword,
@@ -103,8 +133,12 @@ const Settings = ({ userId }) => {
                 }
             );
 
-            if (!response.ok) throw new Error("Error cambiando contraseña");
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || "Error al cambiar contraseña");
+            }
 
+            console.log("✅ Contraseña actualizada correctamente");
             setMessage("✓ Contraseña actualizada correctamente");
             setFormData({
                 ...formData,
@@ -114,7 +148,10 @@ const Settings = ({ userId }) => {
             });
             setTimeout(() => setMessage(""), 3000);
         } catch (err) {
+            console.error("❌ Error:", err.message);
             setError(`✗ ${err.message}`);
+        } finally {
+            setLoadingPassword(false);
         }
     };
 

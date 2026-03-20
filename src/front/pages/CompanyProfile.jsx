@@ -1,25 +1,43 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import CompanyHeader from "../components/company-profile/CompanyHeader";
 import CompanyTabs from "../components/company-profile/CompanyTabs";
 import "../components/company-profile/styles/company-profile.css";
 
 export const CompanyProfile = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "services");
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userType = localStorage.getItem("user_type");
+
+    if (!token || userType !== "company") {
+      setIsAuthenticated(false);
+      setLoading(false);
+      return;
+    }
+
+    setIsAuthenticated(true);
+
     const fetchCompanyData = async () => {
       try {
-        // Obtener company_id desde URL (query parameter)
-        const companyId = new URLSearchParams(window.location.search).get('company_id') || 1;
+        // Obtener company_id desde localStorage o URL
+        const companyId = new URLSearchParams(window.location.search).get('company_id') || localStorage.getItem('user_id') || 1;
         console.log("🔍 CompanyProfile - Fetching company:", companyId);
 
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/company/${companyId}`
+          `${import.meta.env.VITE_BACKEND_URL}/api/company/${companyId}`,
+          {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+          }
         );
 
         console.log("📊 Response status:", response.status);
@@ -43,6 +61,30 @@ export const CompanyProfile = () => {
     return (
       <div className="container mt-5" style={{ textAlign: "center", padding: "50px" }}>
         <p>Cargando perfil de empresa...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container mt-5" style={{ textAlign: "center", paddingBottom: "50px" }}>
+        <div className="alert alert-warning" role="alert">
+          <h4 className="alert-heading">¡Acceso requerido!</h4>
+          <p>Debes estar autenticado como empresa para ver tu perfil.</p>
+          <hr />
+          <button
+            className="btn btn-primary me-2"
+            onClick={() => navigate("/login")}
+          >
+            Iniciar sesión
+          </button>
+          <button
+            className="btn btn-success"
+            onClick={() => navigate("/register")}
+          >
+            Registrarse
+          </button>
+        </div>
       </div>
     );
   }

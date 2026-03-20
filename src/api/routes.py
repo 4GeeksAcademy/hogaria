@@ -28,6 +28,7 @@ def handle_hello():
     response_body = {
         "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
     }
+    return jsonify(response_body), 200
 
 
 @api.route("/search")
@@ -110,18 +111,13 @@ def login():
     email = data.get("email")
     password = data.get("password")
 
-
     if not email or not password:
         return jsonify({"msg": "Email y password son requeridos"}), 400
 
-<<<<<<< HEAD
     # Verificar si existe en User
     user = db.session.execute(
         select(User).where(User.email == email)
     ).scalar_one_or_none()
-=======
-    user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
->>>>>>> ef79d94140a3e34743da487a8aabcc5e09369a5c
 
     if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
@@ -129,7 +125,6 @@ def login():
             "access_token": access_token,
             "user": {
                 "id": user.id,
-<<<<<<< HEAD
                 "email": user.email,
                 "type": "user"
             }
@@ -152,26 +147,6 @@ def login():
         }), 200
 
     return jsonify({"msg": "Credenciales inválidas"}), 401
-=======
-                "email": user.email
-            }
-        }), 200
-
-    company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
-
-    if company and company.check_password(password):
-        access_token = create_access_token(identity=company.id)
-        return jsonify({
-            "access_token": access_token,
-            "company": {
-                "id": company.id,
-                "email": company.email
-            }
-        }), 200
-
-    return jsonify({"msg": "Credenciales inválidas"}), 401
-
->>>>>>> ef79d94140a3e34743da487a8aabcc5e09369a5c
 
 
 @api.route("/google-login", methods=["POST"])
@@ -623,18 +598,19 @@ def create_company():
     data = request.json
     email = data.get("email")
     password = data.get("password")
-    
 
     required_fields = ['name', 'email', 'password', 'phone']
     missing = [field for field in required_fields if field not in data]
 
     if missing:
-        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+        return jsonify({"error": "Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
 
-    existing_company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
-    existing_user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    existing_company = db.session.execute(select(Company).where(
+        Company.email == email)).scalar_one_or_none()
+    existing_user = db.session.execute(select(User).where(
+        User.email == email)).scalar_one_or_none()
     if existing_company or existing_user:
-        return jsonify({"error":"Este correo electrónico ya está registrado en otra cuenta"}), 400
+        return jsonify({"error": "Este correo electrónico ya está registrado en otra cuenta"}), 400
 
     company = Company(
         email=data.get('email'),
@@ -940,24 +916,16 @@ def registerUser():
 
     missing = [field for field in requested_fields if field not in data]
 
-<<<<<<< HEAD
     if missing:
         return jsonify({"error": "Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
 
     existing_user = db.session.execute(select(User).where(
         User.email == email)).scalar_one_or_none()
-
-    if existing_user:
-        return jsonify({"error": "Ya existe un usuario con este correo electrónico"}), 400
-
-=======
-    existing_user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
-    existing_company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
+    existing_company = db.session.execute(select(Company).where(
+        Company.email == email)).scalar_one_or_none()
 
     if existing_user or existing_company:
-        return jsonify({"error":"Este correo electrónico ya está registrado en otra cuenta"}), 400
-
->>>>>>> ef79d94140a3e34743da487a8aabcc5e09369a5c
+        return jsonify({"error": "Este correo electrónico ya está registrado en otra cuenta"}), 400
     new_user = User(
         email=email,
         name=name,

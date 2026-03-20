@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./navbar.css";
 import logo from "../assets/img/hogaria-logo.png";
 
@@ -9,6 +9,7 @@ export const Navbar = () => {
   const token = localStorage.getItem("token");
   const userType = localStorage.getItem("user_type"); // "user" o "company"
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,6 +29,22 @@ export const Navbar = () => {
     localStorage.removeItem("user_type");
     navigate("/login");
   };
+
+  // Cerrar dropdown al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [dropdownOpen]);
 
   // Determinar las rutas según el tipo de usuario
   const profileRoute = userType === "company" ? "/profile/company" : "/profile";
@@ -52,9 +69,9 @@ export const Navbar = () => {
                 <Link to="/register" className="register-btn">Registrarse</Link>
               </>
             ) : null}
-            
+
             {/* DROPDOWN - Siempre visible para prueba */}
-            <div className="navbar-dropdown">
+            <div className="navbar-dropdown" ref={dropdownRef}>
               <button className="dropdown-toggle" onClick={toggleDropdown}>
                 <span>☰</span>
                 <span>Mi Cuenta</span>
@@ -97,7 +114,7 @@ export const Navbar = () => {
 
                   {/* LOGOUT */}
                   {token ? (
-                    <button 
+                    <button
                       className="dropdown-item logout-btn"
                       onClick={() => {
                         handleLogout();

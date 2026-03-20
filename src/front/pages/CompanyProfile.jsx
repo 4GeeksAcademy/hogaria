@@ -15,24 +15,22 @@ export const CompanyProfile = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const userType = localStorage.getItem("user_type");
+    // const userType = localStorage.getItem("user_type");
 
-    if (!token || userType !== "company") {
-      setIsAuthenticated(false);
-      setLoading(false);
-      return;
-    }
+    // if (!token || userType !== "company") {
+    //   setIsAuthenticated(false);
+    //   setLoading(false);
+    //   return;
+    // }
+    console.log("estoy aca");
 
     setIsAuthenticated(true);
 
     const fetchCompanyData = async () => {
       try {
-        // Obtener company_id desde localStorage o URL
-        const companyId = new URLSearchParams(window.location.search).get('company_id') || localStorage.getItem('user_id') || 1;
-        console.log("🔍 CompanyProfile - Fetching company:", companyId);
 
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/company/${companyId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/company`,
           {
             headers: {
               "Authorization": `Bearer ${token}`,

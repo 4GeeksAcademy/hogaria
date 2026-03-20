@@ -8,7 +8,7 @@ const Services = ({ companyId }) => {
     const fetchServices = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/company/${companyId}/services`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/company/services`,
           {
             headers: {
               "Authorization": `Bearer ${localStorage.getItem("token")}`,

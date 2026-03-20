@@ -14,7 +14,7 @@ export const login = async (user, navigate) => {
     alert(data.error);
     return;
   }
-  localStorage.setItem("token", data.token);
+  localStorage.setItem("token", data.access_token);
   navigate("/");
 };
 

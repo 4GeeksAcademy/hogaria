@@ -39,14 +39,13 @@ export const Search = () => {
     const [professionals, setProfessionals] = useState([]); // Resultados de búsqueda
     const [loading, setLoading] = useState(false);           // Estado de carga
     const [searched, setSearched] = useState(false);         // Si ya se buscó
-
+    const navigate = useNavigate();
     // Función para buscar profesionales con los filtros dados
     // Resultado de ejemplo para mostrar si la búsqueda real no devuelve nada
 
 
     // handleSearch: lógica real, pero si no hay resultados, muestra el ejemplo
     const handleSearch = async (filters) => {
-        const navigate = useNavigate();
         setLoading(true);
         setSearched(true);
         try {

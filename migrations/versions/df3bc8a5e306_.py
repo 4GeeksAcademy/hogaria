@@ -1,26 +1,8 @@
 """empty message
 
-<<<<<<< HEAD:migrations/versions/42146444b5f8_.py
-Revision ID: 42146444b5f8
+Revision ID: df3bc8a5e306
 Revises: 
-Create Date: 2026-03-18 20:20:40.142137
-=======
-<<<<<<<< HEAD:migrations/versions/3f1cb5732f84_.py
-Revision ID: 3f1cb5732f84
-Revises: 
-Create Date: 2026-03-17 23:29:47.691728
-========
-<<<<<<<< HEAD:migrations/versions/76357bb66221_.py
-Revision ID: 76357bb66221
-Revises: 
-Create Date: 2026-03-17 12:18:31.141412
-========
-Revision ID: f7dfd00610f3
-Revises: 
-Create Date: 2026-03-16 18:29:13.627921
->>>>>>>> develop:migrations/versions/f7dfd00610f3_.py
->>>>>>>> 0077477b185a60aba774aa4595cb84ce8d6a4548:migrations/versions/76357bb66221_.py
->>>>>>> 05ebb492c7a8b72c939524f2094b29de191d5052:migrations/versions/76357bb66221_.py
+Create Date: 2026-03-20 18:12:43.434359
 
 """
 from alembic import op
@@ -28,19 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-<<<<<<< HEAD:migrations/versions/42146444b5f8_.py
-revision = '42146444b5f8'
-=======
-<<<<<<<< HEAD:migrations/versions/3f1cb5732f84_.py
-revision = '3f1cb5732f84'
-========
-<<<<<<<< HEAD:migrations/versions/76357bb66221_.py
-revision = '76357bb66221'
-========
-revision = 'f7dfd00610f3'
->>>>>>>> develop:migrations/versions/f7dfd00610f3_.py
->>>>>>>> 0077477b185a60aba774aa4595cb84ce8d6a4548:migrations/versions/76357bb66221_.py
->>>>>>> 05ebb492c7a8b72c939524f2094b29de191d5052:migrations/versions/76357bb66221_.py
+revision = 'df3bc8a5e306'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -56,7 +26,7 @@ def upgrade():
     op.create_table('company',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
-    sa.Column('password', sa.String(), nullable=False),
+    sa.Column('password_hash', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('phone', sa.String(), nullable=False),
     sa.Column('rate', sa.Float(), nullable=True),

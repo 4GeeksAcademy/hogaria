@@ -22,7 +22,7 @@ export const Login = () => {
       }
       login(user, navigate)
   }
-
+  
   const handleGoogleLogin = async (credentialResponse) => {
 
     try {

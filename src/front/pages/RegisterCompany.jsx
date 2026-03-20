@@ -75,7 +75,7 @@ export const RegisterCompany = () => {
               type="password"
               placeholder="Confirmar contraseña"
               onChange={handleChange}
-              name="password"
+              name="confirmPassword"
             />
           </div>
 

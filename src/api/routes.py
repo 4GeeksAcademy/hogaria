@@ -13,7 +13,6 @@ import os
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 
 
-
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
@@ -78,6 +77,21 @@ def search():
     return jsonify(results), 200
 
 
+# Endpoint mock para servicios
+
+@api.route("/services")
+def get_services():
+    # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
+    services = [
+        {"id": 1, "nombre": "Plomería", "categoria": "Oficios", "ciudad_id": 1},
+        {"id": 2, "nombre": "Electricidad", "categoria": "Oficios", "ciudad_id": 2},
+        {"id": 3, "nombre": "Carpintería", "categoria": "Oficios", "ciudad_id": 1}
+    ]
+    return jsonify(services), 200
+
+# Endpoint mock para ciudades
+
+
 @api.route("/cities", methods=["GET"])
 def get_cities():
     cities = db.session.query(City).all()
@@ -91,14 +105,14 @@ def login():
     email = data.get("email")
     password = data.get("password")
 
-
     if not email or not password:
         return jsonify({"msg": "Email y password son requeridos"}), 400
 
-    user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    user = db.session.execute(select(User).where(
+        User.email == email)).scalar_one_or_none()
 
     if user and user.check_password(password):
-        access_token = create_access_token(identity=user.id)
+        access_token = create_access_token(identity=str(user.id))
         return jsonify({
             "access_token": access_token,
             "user": {
@@ -107,10 +121,11 @@ def login():
             }
         }), 200
 
-    company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
+    company = db.session.execute(select(Company).where(
+        Company.email == email)).scalar_one_or_none()
 
     if company and company.check_password(password):
-        access_token = create_access_token(identity=company.id)
+        access_token = create_access_token(identity=str(company.id))
         return jsonify({
             "access_token": access_token,
             "company": {
@@ -120,7 +135,6 @@ def login():
         }), 200
 
     return jsonify({"msg": "Credenciales inválidas"}), 401
-
 
 
 @api.route("/google-login", methods=["POST"])
@@ -167,6 +181,20 @@ def google_login():
 def get_profile():
     user_id = request.args.get("user_id", type=int)
 
+    if not user_id:
+        return jsonify({"msg": "user_id es requerido"}), 400
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    return jsonify(user.serialize()), 200
+
+
+@api.route("/user", methods=["GET"])
+@jwt_required()
+def get_user():
+    user_id = get_jwt_identity()
+    print(user_id)
     if not user_id:
         return jsonify({"msg": "user_id es requerido"}), 400
 
@@ -440,9 +468,10 @@ def mark_notification_read(notification_id):
 @api.route('/company', methods=['GET'])
 @jwt_required()
 def get_company():
-    
+    "Obtener perfil de empresa"""
     company_id = get_jwt_identity()
-    company = db.session.get(Company, company_id)
+    print(company_id)
+    company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
 
@@ -461,18 +490,19 @@ def create_company():
     data = request.json
     email = data.get("email")
     password = data.get("password")
-    
 
     required_fields = ['name', 'email', 'password', 'phone']
     missing = [field for field in required_fields if field not in data]
 
     if missing:
-        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+        return jsonify({"error": "Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
 
-    existing_company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
-    existing_user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    existing_company = db.session.execute(select(Company).where(
+        Company.email == email)).scalar_one_or_none()
+    existing_user = db.session.execute(select(User).where(
+        User.email == email)).scalar_one_or_none()
     if existing_company or existing_user:
-        return jsonify({"error":"Este correo electrónico ya está registrado en otra cuenta"}), 400
+        return jsonify({"error": "Este correo electrónico ya está registrado en otra cuenta"}), 400
 
     company = Company(
         email=data.get('email'),
@@ -508,10 +538,11 @@ def update_company(company_id):
 # Endpoints de Servicios
 
 
-@api.route('/company/<int:company_id>/services', methods=['GET'])
+@api.route('/company/services', methods=['GET'])
 @jwt_required()
-def get_company_services(company_id):
+def get_company_services():
     """Obtener servicios de una empresa"""
+    company_id = get_jwt_identity()
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
@@ -778,7 +809,7 @@ def save_payment():
 
 @api.route('register/user', methods=['POST'])
 def registerUser():
-    
+
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
@@ -789,15 +820,17 @@ def registerUser():
     requested_fields = {"email", "password", "name", "lastname", "phone"}
 
     missing = [field for field in requested_fields if field not in data]
-    
-    if missing:
-        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
 
-    existing_user = db.session.execute(select(User).where(User.email == email)).scalar_one_or_none()
-    existing_company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
+    if missing:
+        return jsonify({"error": "Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+
+    existing_user = db.session.execute(select(User).where(
+        User.email == email)).scalar_one_or_none()
+    existing_company = db.session.execute(select(Company).where(
+        Company.email == email)).scalar_one_or_none()
 
     if existing_user or existing_company:
-        return jsonify({"error":"Este correo electrónico ya está registrado en otra cuenta"}), 400
+        return jsonify({"error": "Este correo electrónico ya está registrado en otra cuenta"}), 400
 
     new_user = User(
         email=email,
@@ -810,11 +843,12 @@ def registerUser():
 
     db.session.add(new_user)
     db.session.commit()
-    return jsonify({"message":"Su usuario ha sido creado exitosamente"}), 201
+    return jsonify({"message": "Su usuario ha sido creado exitosamente"}), 201
+
 
 @api.route('register/company', methods=['POST'])
 def registerCompany():
-    
+
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
@@ -824,14 +858,15 @@ def registerCompany():
     requested_fields = {"email", "password", "name", "phone"}
 
     missing = [field for field in requested_fields if field not in data]
-    
-    if missing:
-        return jsonify({"error":"Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
 
-    existing_company = db.session.execute(select(Company).where(Company.email == email)).scalar_one_or_none()
+    if missing:
+        return jsonify({"error": "Faltan datos, por favor complete todos los campos. Datos a rellenar: {missing}"}), 400
+
+    existing_company = db.session.execute(select(Company).where(
+        Company.email == email)).scalar_one_or_none()
 
     if existing_company:
-        return jsonify({"error":"Ya existe una empresa con este correo electrónico"}), 400
+        return jsonify({"error": "Ya existe una empresa con este correo electrónico"}), 400
 
     new_company = Company(
         email=email,
@@ -844,4 +879,4 @@ def registerCompany():
 
     db.session.add(new_company)
     db.session.commit()
-    return jsonify({"message":"Su empresa ha sido creada exitosamente"}), 201
+    return jsonify({"message": "Su empresa ha sido creada exitosamente"}), 201

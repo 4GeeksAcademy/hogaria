@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Reviews = ({ userId }) => {
+  const navigate = useNavigate();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,10 @@ const Reviews = ({ userId }) => {
   return (
     <div className="reviews">
       <h5>Valoraciones</h5>
-      <button className="btn btn-success mb-3">
+      <button
+        className="btn btn-success mb-3"
+        onClick={() => navigate('/review')}
+      >
         <i className="fas fa-star"></i> Dejar una Valoración
       </button>
 

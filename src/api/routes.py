@@ -30,8 +30,7 @@ def handle_hello():
     }
 
 
-@api.route("/search")
-@jwt_required()
+@api.route("/search" , methods=["GET"])
 def search():
     q = request.args.get("q", "")
     service_id = request.args.get("service_id")
@@ -80,28 +79,33 @@ def search():
 
 # Endpoint mock para servicios
 
-@api.route("/services")
+@api.route("/services", methods=["GET"])
 def get_services():
-    # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
-    services = [
-        {"id": 1, "nombre": "Plomería", "categoria": "Oficios", "ciudad_id": 1},
-        {"id": 2, "nombre": "Electricidad", "categoria": "Oficios", "ciudad_id": 2},
-        {"id": 3, "nombre": "Carpintería", "categoria": "Oficios", "ciudad_id": 1}
-    ]
+    db_services = db.session.query(Service).all()
+    services = [{"id": service.id, "nombre": service.name} for service in db_services]
     return jsonify(services), 200
-
-# Endpoint mock para ciudades
-
 
 @api.route("/cities", methods=["GET"])
 def get_cities():
-    # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
-    cities = [
-        {"id": 1, "nombre": "Madrid"},
-        {"id": 2, "nombre": "Barcelona"},
-        {"id": 3, "nombre": "Valencia"}
-    ]
+    db_cities = City.query.all()
+    if not db_cities:
+        return jsonify({"msg": "No hay ciudades disponibles"}), 404
+    cities = [city.serialize() for city in db_cities]
     return jsonify(cities), 200
+
+@api.route("/cities", methods=["POST"])
+def create_city():
+    data = request.get_json()
+    name = data.get("name")
+
+    if not name:
+        return jsonify({"msg": "Name is required"}), 400
+
+    city = City(name=name)
+    db.session.add(city)
+    db.session.commit()
+
+    return jsonify(city.serialize()), 201
 
 
 @api.route("/login", methods=["POST"])

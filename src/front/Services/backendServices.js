@@ -15,7 +15,7 @@ export const login = async (user, navigate) => {
     return;
   }
   localStorage.setItem("token", data.access_token);
-  navigate("/");
+  navigate("/home");
 };
 
 export const signupUser = async (user, navigate) => {

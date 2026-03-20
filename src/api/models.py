@@ -41,8 +41,8 @@ class User(db.Model):
             "name": self.name,
             "lastname": self.lastname,
             "phone": self.phone,
-            "opinions": self.opinions,
-            "history": self.history
+            "opinions": [opinion.serialize() for opinion in self.opinions],
+            "history": [service.serialize() for service in self.history]
         }
 
 
@@ -74,8 +74,8 @@ class Company(db.Model):
             "name": self.name,
             "phone": self.phone,
             "rate": self.rate,
-            "opinions": self.opinions,
-            "services": self.services
+            "opinions": [opinion.serialize() for opinion in self.opinions],
+            "services": [service.serialize() for service in self.services]
         }
 
 
@@ -91,7 +91,7 @@ class City(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "services": self.services
+            "services": [service.serialize() for service in self.services]
         }
 
 class ServiceCategory(enum.Enum):

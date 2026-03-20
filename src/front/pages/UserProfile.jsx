@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import UserProfileHeader from "../components/profile/tabs/UserProfileHeader";
 import ProfileTabs from "../components/profile/tabs/ProfileTabs";
 import "../components/profile/styles/profile.css";
+import { authCheck } from "../Services/backendServices";
 
 export const UserProfile = () => {
     const [activeTab, setActiveTab] = useState("bookings");

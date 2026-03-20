@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { SearchForm } from "../components/SearchForm";
 import { SearchResults } from "../components/SearchResults";
 import "./search.css";
+import { authCheck } from "../Services/backendServices";
+
 
 // Datos de ejemplo para mostrar cuando la API falla
 const exampleProfessional = [
@@ -16,29 +18,6 @@ const exampleProfessional = [
         servicios: [
             { id: 1, nombre: "Plomería" },
             { id: 2, nombre: "Reparaciones" }
-        ]
-    },
-    {
-        id: 2,
-        username: "carloselec",
-        name: "Carlos",
-        lastname: "López",
-        email: "carlos@example.com",
-        telefono: "600654321",
-        servicios: [
-            { id: 3, nombre: "Electricidad" }
-        ]
-    },
-    {
-        id: 3,
-        username: "mariocarp",
-        name: "Mario",
-        lastname: "Rodríguez",
-        email: "mario@example.com",
-        telefono: "600789012",
-        servicios: [
-            { id: 4, nombre: "Carpintería" },
-            { id: 5, nombre: "Reformas" }
         ]
     }
 ];

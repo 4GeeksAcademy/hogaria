@@ -18,7 +18,7 @@ export const SearchResults = ({ professionals }) => {
         <table className="table table-hover">
           <thead>
             <tr>
-              <th>Usuario</th>
+              <th>Valoracion</th>
               <th>Nombre</th>
               <th>Email</th>
               <th>Teléfono</th>
@@ -30,7 +30,7 @@ export const SearchResults = ({ professionals }) => {
             {professionals.map((professional) => (
               <tr key={professional.id}>
                 {/* Usuario (username) */}
-                <td>{professional.username}</td>
+                <td>{professional.rate}</td>
                 {/* Nombre completo (nombre + apellido si existe) */}
                 <td>{professional.name} {professional.lastname || ""}</td>
                 {/* Email */}

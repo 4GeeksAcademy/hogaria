@@ -47,18 +47,19 @@ export const signupCompany = async (company, navigate) => {
   }
 }
 
-/*export const privateCheck = async () => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-        return false
+export const authCheck = async (endpoint, navigate) => {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}${endpoint}`, {
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
     }
-    const response = await fetch (`${import.meta.env.VITE_BACKEND_URL}/api`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-    })
-    const data = await response.json()
-    if (!response.ok) {
-        localStorage.removeItem('token')
-        return false
-    }
-    return true 
-}*/
+  });
+
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    navigate('/login');
+  }
+  return response;
+};

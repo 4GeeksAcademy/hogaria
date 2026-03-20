@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import CompanyHeader from "../components/company-profile/CompanyHeader";
 import CompanyTabs from "../components/company-profile/CompanyTabs";
 import "../components/company-profile/styles/company-profile.css";
+import { authCheck } from "../Services/backendServices";
 
 export const CompanyProfile = () => {
   const [activeTab, setActiveTab] = useState("services");

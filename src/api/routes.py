@@ -32,7 +32,6 @@ def handle_hello():
 
 
 @api.route("/search")
-@jwt_required()
 def search():
     q = request.args.get("q", "")
     service_id = request.args.get("service_id")
@@ -44,7 +43,7 @@ def search():
     # Filtro de texto (nombre, apellido, email)
     if q:
         query = query.filter(
-            (User.firstname.ilike(f"%{q}%")) |
+            (User.name.ilike(f"%{q}%")) |
             (User.lastname.ilike(f"%{q}%")) |
             (User.email.ilike(f"%{q}%"))
         )
@@ -79,31 +78,10 @@ def search():
     return jsonify(results), 200
 
 
-
-
-# Endpoint mock para servicios
-
-@api.route("/services")
-def get_services():
-    # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
-    services = [
-        {"id": 1, "nombre": "Plomería", "categoria": "Oficios", "ciudad_id": 1},
-        {"id": 2, "nombre": "Electricidad", "categoria": "Oficios", "ciudad_id": 2},
-        {"id": 3, "nombre": "Carpintería", "categoria": "Oficios", "ciudad_id": 1}
-    ]
-    return jsonify(services), 200
-
-# Endpoint mock para ciudades
-
-
 @api.route("/cities", methods=["GET"])
 def get_cities():
-    # Datos de ejemplo, reemplaza por consulta real a la BD cuando esté lista
-    cities = [
-        {"id": 1, "nombre": "Madrid"},
-        {"id": 2, "nombre": "Barcelona"},
-        {"id": 3, "nombre": "Valencia"}
-    ]
+    cities = db.session.query(City).all()
+    cities = [city.serialize() for city in cities]
     return jsonify(cities), 200
 
 
@@ -185,6 +163,7 @@ def google_login():
 
 
 @api.route("/profile", methods=["GET"])
+@jwt_required()
 def get_profile():
     user_id = request.args.get("user_id", type=int)
 
@@ -198,6 +177,7 @@ def get_profile():
 
 
 @api.route('/user/profile', methods=['PUT'])
+@jwt_required()
 def update_user_profile():
     "Actualizar perfil del usuario"
 
@@ -226,6 +206,7 @@ def update_user_profile():
 
 
 @api.route('/user/change-password', methods=['POST'])
+@jwt_required()
 def change_password():
 
     data = request.json
@@ -253,6 +234,7 @@ def change_password():
 
 
 @api.route('/user/bookings', methods=['GET'])
+@jwt_required()
 def get_user_bookings():
     "Obtener todas las reservas del usuario"
 
@@ -266,6 +248,7 @@ def get_user_bookings():
 
 
 @api.route('/user/bookings', methods=['POST'])
+@jwt_required()
 def create_booking():
     "Crear una nueva reserva"
     data = request.json
@@ -296,6 +279,7 @@ def create_booking():
 
 
 @api.route('/user/bookings/<int:booking_id>', methods=['GET'])
+@jwt_required()
 def get_booking(booking_id):
     "Obtener detalles de una reserva específica"
 
@@ -307,6 +291,7 @@ def get_booking(booking_id):
 
 
 @api.route('/user/bookings/<int:booking_id>', methods=['PUT'])
+@jwt_required()
 def update_booking(booking_id):
     "Actualizar una reserva"
 
@@ -327,6 +312,7 @@ def update_booking(booking_id):
 
 
 @api.route('/user/bookings/<int:booking_id>', methods=['DELETE'])
+@jwt_required()
 def delete_booking(booking_id):
     """Cancelar/Eliminar una reserva"""
     booking = Booking.query.get(booking_id)
@@ -341,6 +327,7 @@ def delete_booking(booking_id):
 
 
 @api.route('/user/payment-methods', methods=['GET'])
+@jwt_required()
 def get_payment_methods():
     """Obtener métodos de pago del usuario"""
     user_id = request.args.get('user_id', type=int)
@@ -353,6 +340,7 @@ def get_payment_methods():
 
 
 @api.route('/user/payment-methods', methods=['POST'])
+@jwt_required()
 def create_payment_method():
     """Crear un nuevo método de pago"""
     data = request.json
@@ -382,6 +370,7 @@ def create_payment_method():
 
 
 @api.route('/user/payment-methods/<int:method_id>', methods=['PUT'])
+@jwt_required()
 def update_payment_method(method_id):
     """Actualizar un método de pago"""
     data = request.json
@@ -398,6 +387,7 @@ def update_payment_method(method_id):
 
 
 @api.route('/user/payment-methods/<int:method_id>', methods=['DELETE'])
+@jwt_required()
 def delete_payment_method(method_id):
     """Eliminar un método de pago"""
     method = PaymentMethod.query.get(method_id)
@@ -413,6 +403,7 @@ def delete_payment_method(method_id):
 # ENDPOINTS DE NOTIFICACIONES
 
 @api.route('/user/notifications', methods=['GET'])
+@jwt_required()
 def get_notifications():
     """Obtener notificaciones del usuario"""
     user_id = request.args.get('user_id', type=int)
@@ -431,6 +422,7 @@ def get_notifications():
 
 
 @api.route('/user/notifications/<int:notification_id>', methods=['PUT'])
+@jwt_required()
 def mark_notification_read(notification_id):
     "Marcar notificación como leída"
     notification = Notification.query.get(notification_id)
@@ -446,6 +438,7 @@ def mark_notification_read(notification_id):
 
 
 @api.route('/company/<int:company_id>', methods=['GET'])
+@jwt_required()
 def get_company(company_id):
     "Obtener perfil de empresa"""
     company = Company.query.get(company_id)
@@ -495,6 +488,7 @@ def create_company():
 
 
 @api.route('/company/<int:company_id>', methods=['PUT'])
+@jwt_required()
 def update_company(company_id):
     """Actualizar información de empresa"""
     data = request.json
@@ -514,6 +508,7 @@ def update_company(company_id):
 
 
 @api.route('/company/<int:company_id>/services', methods=['GET'])
+@jwt_required()
 def get_company_services(company_id):
     """Obtener servicios de una empresa"""
     company = Company.query.get(company_id)
@@ -525,6 +520,7 @@ def get_company_services(company_id):
 
 
 @api.route('/company/<int:company_id>/services', methods=['POST'])
+@jwt_required()
 def create_service(company_id):
     """Crear un nuevo servicio"""
     data = request.json
@@ -556,6 +552,7 @@ def create_service(company_id):
 
 
 @api.route('/service/<int:service_id>', methods=['PUT'])
+@jwt_required()
 def update_service(service_id):
     """Actualizar un servicio"""
     data = request.json
@@ -575,6 +572,7 @@ def update_service(service_id):
 
 
 @api.route('/service/<int:service_id>', methods=['DELETE'])
+@jwt_required()
 def delete_service(service_id):
     """Eliminar un servicio"""
     service = Service.query.get(service_id)
@@ -590,6 +588,7 @@ def delete_service(service_id):
 
 
 @api.route('/company/<int:company_id>/opinions', methods=['GET'])
+@jwt_required()
 def get_company_opinions(company_id):
     """Obtener opiniones de una empresa"""
     company = Company.query.get(company_id)
@@ -601,6 +600,7 @@ def get_company_opinions(company_id):
 
 
 @api.route('/company/<int:company_id>/opinions', methods=['POST'])
+@jwt_required()
 def create_opinion(company_id):
     """Crear una nueva opinión"""
     data = request.json
@@ -633,6 +633,7 @@ def create_opinion(company_id):
 
 
 @api.route('/company/<int:company_id>/gallery', methods=['GET'])
+@jwt_required()
 def get_company_gallery(company_id):
     """Obtener galería de una empresa"""
     company = Company.query.get(company_id)
@@ -643,6 +644,7 @@ def get_company_gallery(company_id):
 
 
 @api.route('/company/<int:company_id>/coverage', methods=['GET'])
+@jwt_required()
 def get_company_coverage(company_id):
     """Obtener zonas de cobertura de una empresa"""
     company = Company.query.get(company_id)
@@ -655,6 +657,7 @@ def get_company_coverage(company_id):
 # STRIPE ENDPOINTS
 
 @api.route('/create-checkout-session', methods=['POST'])
+@jwt_required()
 def create_checkout_session():
     """Crear un PaymentIntent para el formulario de pago integrado"""
     try:
@@ -692,6 +695,7 @@ def create_checkout_session():
 
 
 @api.route('/payment-success', methods=['POST'])
+@jwt_required()
 def payment_success():
     """Confirmar que el pago fue exitoso y guardar en BD"""
     try:
@@ -722,6 +726,7 @@ def payment_success():
 
 
 @api.route('/save-payment', methods=['POST'])
+@jwt_required()
 def save_payment():
     "Guardar transacción de pago en la BD"
     try:

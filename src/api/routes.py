@@ -437,11 +437,12 @@ def mark_notification_read(notification_id):
 # Endpoints de Empresa
 
 
-@api.route('/company/<int:company_id>', methods=['GET'])
+@api.route('/company', methods=['GET'])
 @jwt_required()
-def get_company(company_id):
-    "Obtener perfil de empresa"""
-    company = Company.query.get(company_id)
+def get_company():
+    
+    company_id = get_jwt_identity()
+    company = db.session.get(Company, company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
 

@@ -3,15 +3,22 @@ import { useState, useEffect } from "react";
 
 // SearchForm: Formulario de búsqueda con filtros de servicio y ciudad.
 // Recibe la función onSearch como prop, que se ejecuta al enviar el formulario.
-export const SearchForm = ({ onSearch }) => {
+export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId }) => {
 
   // Estado local para los filtros del formulario
   const [filters, setFilters] = useState({
-    q: "",           // Texto de búsqueda
-    service_id: "",  // ID del servicio seleccionado
-    city_id: "",     // ID de la ciudad seleccionada
+    q: initialQ || "",           // Texto de búsqueda
+    service_id: initialServiceId || "",  // ID del servicio seleccionado
+    city_id: initialCityId || "",     // ID de la ciudad seleccionada
   });
 
+  useEffect(() => {
+    setFilters({
+      q: initialQ || "",
+      service_id: initialServiceId || "",
+      city_id: initialCityId || "",
+    });
+  }, [initialQ, initialServiceId, initialCityId]);
 
   // Estados para las opciones de los selects
   const [services, setServices] = useState([]); // Lista de servicios

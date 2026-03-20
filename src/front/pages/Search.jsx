@@ -4,6 +4,7 @@ import { SearchForm } from "../components/SearchForm";
 import { SearchResults } from "../components/SearchResults";
 import "./search.css";
 import { authCheck } from "../Services/backendServices";
+import { useNavigate } from "react-router-dom";
 
 
 // Datos de ejemplo para mostrar cuando la API falla
@@ -26,9 +27,14 @@ export const Search = () => {
     // Hook para acceder a los parámetros de búsqueda en la URL (por ejemplo, ?q=plomería)
     const [searchParams] = useSearchParams();
     // Leer valores iniciales de la URL
-    const initialQ = searchParams.get("q") || "";
-    const initialServiceId = searchParams.get("service_id") || "";
-    const initialCityId = searchParams.get("city_id") || "";
+    const params = new URLSearchParams(searchParams);
+
+    const serviceId = params.get("service_id");
+    const q = params.get("q");
+    const cityId = params.get("city_id");
+    const initialServiceId = serviceId || "";
+    const initialQ = serviceId ? "" : (q || "");
+    const initialCityId = cityId || "";
 
     const [professionals, setProfessionals] = useState([]); // Resultados de búsqueda
     const [loading, setLoading] = useState(false);           // Estado de carga
@@ -40,6 +46,7 @@ export const Search = () => {
 
     // handleSearch: lógica real, pero si no hay resultados, muestra el ejemplo
     const handleSearch = async (filters) => {
+        const navigate = useNavigate();
         setLoading(true);
         setSearched(true);
         try {
@@ -47,9 +54,10 @@ export const Search = () => {
             if (filters.q) params.append("q", filters.q);
             if (filters.service_id) params.append("service_id", filters.service_id);
             if (filters.city_id) params.append("city_id", filters.city_id);
-
+            navigate(`/search?${params.toString()}`);
             // Intentar con VITE_BACKEND_URL primero, luego con ruta relativa
             const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+            
             const response = await fetch(`${backendUrl}/api/search?${params.toString()}`);
 
             if (!response.ok) {

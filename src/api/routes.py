@@ -30,7 +30,7 @@ def handle_hello():
     }
 
 
-@api.route("/search" , methods=["GET"])
+@api.route("/search" , methods=["GET"] )
 def search():
     q = request.args.get("q", "")
     service_id = request.args.get("service_id")

@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import CompanyHeader from "../components/company-profile/CompanyHeader";
 import CompanyTabs from "../components/company-profile/CompanyTabs";
 import "../components/company-profile/styles/company-profile.css";
+import { authCheck } from "../Services/backendServices";
 
 export const CompanyProfile = () => {
   const [searchParams] = useSearchParams();
@@ -28,9 +29,9 @@ export const CompanyProfile = () => {
 
     const fetchCompanyData = async () => {
       try {
-
+        const companyId = localStorage.getItem("user_id");
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/company`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/company-profile?company_id=${companyId}`,
           {
             headers: {
               "Authorization": `Bearer ${token}`,

@@ -103,7 +103,7 @@ export const Home = () => {
                   if (service.title === "Comercios") {
                     navigate("/map");
                   } else {
-                    navigate(`/services/${service.title.toLowerCase()}`);
+                    navigate(`/search?service_id=${service.title.toLowerCase()}`);
                   }
                 }}
               >

@@ -3,64 +3,36 @@ import { useState, useEffect } from "react";
 import { SearchForm } from "../components/SearchForm";
 import { SearchResults } from "../components/SearchResults";
 import "./search.css";
+import { authCheck } from "../Services/backendServices";
+import { useNavigate } from "react-router-dom";
+
 
 // Datos de ejemplo para mostrar cuando la API falla
-const exampleProfessional = [
-    {
-        id: 1,
-        username: "juanplomero",
-        name: "Juan",
-        lastname: "García",
-        email: "juan@example.com",
-        telefono: "600123456",
-        servicios: [
-            { id: 1, nombre: "Plomería" },
-            { id: 2, nombre: "Reparaciones" }
-        ]
-    },
-    {
-        id: 2,
-        username: "carloselec",
-        name: "Carlos",
-        lastname: "López",
-        email: "carlos@example.com",
-        telefono: "600654321",
-        servicios: [
-            { id: 3, nombre: "Electricidad" }
-        ]
-    },
-    {
-        id: 3,
-        username: "mariocarp",
-        name: "Mario",
-        lastname: "Rodríguez",
-        email: "mario@example.com",
-        telefono: "600789012",
-        servicios: [
-            { id: 4, nombre: "Carpintería" },
-            { id: 5, nombre: "Reformas" }
-        ]
-    }
-];
+
 
 export const Search = () => {
     // Hook para acceder a los parámetros de búsqueda en la URL (por ejemplo, ?q=plomería)
     const [searchParams] = useSearchParams();
     // Leer valores iniciales de la URL
-    const initialQ = searchParams.get("q") || "";
-    const initialServiceId = searchParams.get("service_id") || "";
-    const initialCityId = searchParams.get("city_id") || "";
+    const params = new URLSearchParams(searchParams);
 
-    const [professionals, setProfessionals] = useState([]); // Resultados de búsqueda
+    const serviceId = params.get("service_id");
+    const q = params.get("q");
+    const cityId = params.get("city_id");
+    const initialServiceId = serviceId || "";
+    const initialQ = serviceId ? "" : (q || "");
+    const initialCityId = cityId || "";
+
+    const [services, setServices] = useState([]); // Resultados de búsqueda
     const [loading, setLoading] = useState(false);           // Estado de carga
     const [searched, setSearched] = useState(false);         // Si ya se buscó
-
+    const navigate = useNavigate();
     // Función para buscar profesionales con los filtros dados
     // Resultado de ejemplo para mostrar si la búsqueda real no devuelve nada
 
 
     // handleSearch: lógica real, pero si no hay resultados, muestra el ejemplo
-    const handleSearch = async (filters) => {
+    const handleSearch = async (filters, fromURL = false) => {
         setLoading(true);
         setSearched(true);
         try {
@@ -69,33 +41,38 @@ export const Search = () => {
             if (filters.service_id) params.append("service_id", filters.service_id);
             if (filters.city_id) params.append("city_id", filters.city_id);
 
+            if (!fromURL) {
+                navigate(`/search?${params.toString()}`);
+            }
+
             // Intentar con VITE_BACKEND_URL primero, luego con ruta relativa
             const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+            
             const response = await fetch(`${backendUrl}/api/search?${params.toString()}`);
 
             if (!response.ok) {
                 console.warn(`API returned ${response.status}, using sample data`);
-                setProfessionals(exampleProfessional);
+                setServices([]);
                 return;
             }
 
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                 console.warn('API did not return JSON, using sample data');
-                setProfessionals(exampleProfessional);
+                setServices([]);
                 return;
             }
 
             const data = await response.json();
             // Si la búsqueda real devuelve resultados, muéstralos
             if (Array.isArray(data) && data.length > 0) {
-                setProfessionals(data);
+                setServices(data);
             } else {
-                setProfessionals(exampleProfessional);
+                setServices([]);
             }
         } catch (error) {
             console.error("Error fetching search results:", error);
-            setProfessionals(exampleProfessional);
+            setServices([]);
         } finally {
             setLoading(false);
         }
@@ -108,7 +85,7 @@ export const Search = () => {
                 q: initialQ,
                 service_id: initialServiceId,
                 city_id: initialCityId
-            });
+            },true);
         }
         // eslint-disable-next-line
     }, [initialQ, initialServiceId, initialCityId]);
@@ -129,12 +106,12 @@ export const Search = () => {
                         <p><strong>Buscando...</strong></p>
                     </div>
                 )}
-                {searched && !loading && professionals.length === 0 && (
+                {searched && !loading && services.length === 0 && (
                     <div className="empty-search-state">
                         <p><strong>No se encontraron resultados.</strong></p>
                     </div>
                 )}
-                {professionals.length > 0 && <SearchResults professionals={professionals} />}
+                {services.length > 0 && <SearchResults services={services} />}
             </div>
         </div>
     );

@@ -57,7 +57,7 @@ export const router = createBrowserRouter(
       <Route path="register/company" element={<RegisterCompany />} />
       <Route path="support" element={<CustomerSupport />} />
       <Route path="review" element={<Review />} />
-      <Route path="/profile/company" element={<CompanyProfile />} />
+      <Route path="/company-profile" element={<CompanyProfile />} />
       <Route path="checkout" element={<Checkout />} />
       <Route path="checkout-test" element={<CheckoutTest />} />
       <Route path="success" element={<Success />} />

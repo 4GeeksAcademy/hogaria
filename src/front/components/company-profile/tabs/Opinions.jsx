@@ -55,7 +55,7 @@ const Opinions = ({ companyId }) => {
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
-                    <h6 className="card-subtitle mb-2">Usuario ID: {opinion.user_id}</h6>
+                    <h6 className="card-subtitle mb-2">Usuario: {opinion.author_name} {opinion.author_lastname}</h6>
                     <div className="mb-2">
                       {renderStars(opinion.rating)}
                       <span className="ms-2 text-muted">({opinion.rating}/5)</span>

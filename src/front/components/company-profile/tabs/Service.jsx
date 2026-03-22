@@ -33,6 +33,11 @@ const Services = ({ companyId }) => {
 
   return (
     <div className="services-section">
+      <div className="container mt-4">
+        {localStorage.getItem("user_type") === "company" && (
+          <button className="btn btn-success mb-4">+ Agregar Nuevo Servicio</button>
+        )}
+      </div>
       {services.length === 0 ? (
         <p className="text-muted">Esta empresa no tiene servicios publicados</p>
       ) : (
@@ -55,9 +60,11 @@ const Services = ({ companyId }) => {
                       <span className="badge bg-success">Disponible 24/7</span>
                     )}
                   </div>
-                  <button className="btn btn-sm btn-primary mt-3 w-100">
-                    Contratar Servicio
-                  </button>
+                  {localStorage.getItem("user_type") === "user" && (
+                    <button className="btn btn-primary mt-3 w-100">
+                      Contratar Servicio
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

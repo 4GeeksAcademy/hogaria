@@ -6,8 +6,8 @@ import logo from "../assets/img/hogaria-logo.png";
 export const Navbar = () => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
   const userType = localStorage.getItem("user_type"); // "user" o "company"
+  const token = localStorage.getItem("token");// "user" o "company"
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -25,8 +25,8 @@ export const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user_id");
     localStorage.removeItem("user_type");
+    localStorage.removeItem("user_id");
     navigate("/login");
   };
 
@@ -47,7 +47,7 @@ export const Navbar = () => {
   }, [dropdownOpen]);
 
   // Determinar las rutas según el tipo de usuario
-  const profileRoute = userType === "company" ? "/profile/company" : "/profile";
+  const profileRoute = userType === "company" ? "/company-profile" : "/profile";
   const bookingsRoute = userType === "company" ? "/profile/company?tab=requests" : "/profile?tab=bookings";
   const bookingsLabel = userType === "company" ? "📬 Solicitudes" : "📅 Reservas";
   const settingsRoute = userType === "company" ? "/profile/company?tab=settings" : "/profile?tab=settings";

@@ -29,9 +29,9 @@ export const CompanyProfile = () => {
 
     const fetchCompanyData = async () => {
       try {
-
+        const companyId = localStorage.getItem("user_id");
         const response = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/api/company`,
+          `${import.meta.env.VITE_BACKEND_URL}/api/company-profile?company_id=${companyId}`,
           {
             headers: {
               "Authorization": `Bearer ${token}`,

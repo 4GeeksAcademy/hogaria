@@ -5,6 +5,7 @@ import ProfileTabs from "../components/profile/tabs/ProfileTabs";
 import "../components/profile/styles/profile.css";
 import { authCheck } from "../Services/backendServices";
 
+
 export const UserProfile = () => {
     const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "bookings");
@@ -16,7 +17,6 @@ export const UserProfile = () => {
 
     useEffect(() => {
         const token = localStorage.getItem("token");
-
         if (!token) {
             setIsAuthenticated(false);
             setLoading(false);
@@ -28,20 +28,38 @@ export const UserProfile = () => {
         const fetchUserData = async () => {
             try {
                 // Obtener user_id del query string o del localStorage
-                const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('user_id') || 1;
+                const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('user_id');
+                const userType = new URLSearchParams(window.location.search).get('user_type') || localStorage.getItem('user_type');
+                console.log("User ID:", userId, "User Type:", userType);
+                if (!userId || !userType) {
+                    throw new Error("No se pudo determinar el usuario autenticado");
+                }
+                if (userType === "user") {
+                    const response = await fetch(
+                        `${import.meta.env.VITE_BACKEND_URL}/api/profile?user_id=${userId}`,
+                        {
+                            headers: {
+                                "Authorization": `Bearer ${token}`,
+                            },
+                        }
+                    );
+                    if (!response.ok) throw new Error("Error cargando perfil");
+                    const data = await response.json();
+                    setUserData(data);
 
-                const response = await fetch(
-                    `${import.meta.env.VITE_BACKEND_URL}/api/profile?user_id=${userId}`,
-                    {
-                        headers: {
-                            "Authorization": `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                if (!response.ok) throw new Error("Error cargando perfil");
-                const data = await response.json();
-                setUserData(data);
+                } else if (userType === "company") {
+                    const response = await fetch(
+                        `${import.meta.env.VITE_BACKEND_URL}/api/company-profile?company_id=${userId}`,
+                            {
+                                headers: {
+                                    "Authorization": `Bearer ${token}`,
+                                },
+                            }
+                        );
+                    if (!response.ok) throw new Error("Error cargando perfil");
+                    const data = await response.json();
+                    setUserData(data);
+                }
             } catch (err) {
                 setError(err.message);
             } finally {

@@ -22,9 +22,50 @@ export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId
 
   // Estados para las opciones de los selects
   const [services, setServices] = useState([]); // Lista de servicios
+  const [categories, setCategories] = useState([]); // Lista de categorías
   const [cities, setCities] = useState([]);     // Lista de ciudades
   const [loadingOptions, setLoadingOptions] = useState(false); // Indica si se están cargando las opciones
 
+  useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
+      const res = await fetch(`${backendUrl}/api/service-categories`);
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(Array.isArray(data) ? data : []);
+      } else {
+        // Fallback si falla la API
+        setCategories([
+          { value: "cerrajería", label: "Cerrajería" },
+          { value: "climatización", label: "Climatización" },
+          { value: "fontanería", label: "Fontanería" },
+          { value: "comercios", label: "Comercios" },
+          { value: "electricidad", label: "Electricidad" },
+          { value: "reformas", label: "Reformas" },
+          { value: "limpieza", label: "Limpieza" },
+          { value: "mudanzas", label: "Mudanzas" },
+          { value: "categoría", label: "Categoría" },
+        ]);
+      }
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+      // Fallback si falla el fetch
+      setCategories([
+        { value: "cerrajería", label: "Cerrajería" },
+        { value: "climatización", label: "Climatización" },
+        { value: "fontanería", label: "Fontanería" },
+        { value: "comercios", label: "Comercios" },
+        { value: "electricidad", label: "Electricidad" },
+        { value: "reformas", label: "Reformas" },
+        { value: "limpieza", label: "Limpieza" },
+        { value: "mudanzas", label: "Mudanzas" },
+        { value: "categoría", label: "Categoría" },
+      ]);
+    }
+  };
+  fetchCategories();
+}, []); // Solo al montar el componente
 
   // useEffect: Al montar el componente, carga los servicios y ciudades desde la API
   useEffect(() => {
@@ -35,7 +76,7 @@ export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId
 
         // Intenta obtener los datos reales de la API
         const [servicesRes, citiesRes] = await Promise.all([
-          fetch(`${backendUrl}/api/services`),
+          fetch(`${backendUrl}/api/service-categories`),
           fetch(`${backendUrl}/api/cities`),
         ]);
 
@@ -45,9 +86,9 @@ export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId
           setServices(Array.isArray(servicesData) ? servicesData : []);
         } else {
           setServices([
-            { id: 1, nombre: "Plomería", categoria: "Oficios" },
-            { id: 2, nombre: "Electricidad", categoria: "Oficios" },
-            { id: 3, nombre: "Carpintería", categoria: "Oficios" },
+            { id: 1, name: "Plomería", category: "Oficios" },
+            { id: 2, name: "Electricidad", category: "Oficios" },
+            { id: 3, name: "Carpintería", category: "Oficios" },
           ]);
         }
 
@@ -56,23 +97,23 @@ export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId
           setCities(Array.isArray(citiesData) ? citiesData : []);
         } else {
           setCities([
-            { id: 1, nombre: "Madrid" },
-            { id: 2, nombre: "Barcelona" },
-            { id: 3, nombre: "Valencia" },
+            { id: 1, name: "Madrid" },
+            { id: 2, name: "Barcelona" },
+            { id: 3, name: "Valencia" },
           ]);
         }
       } catch (error) {
         // Si falla la API, usa datos de ejemplo (mock)
         console.error("Error fetching filters:", error);
         setServices([
-          { id: 1, nombre: "Plomería", categoria: "Oficios" },
-          { id: 2, nombre: "Electricidad", categoria: "Oficios" },
-          { id: 3, nombre: "Carpintería", categoria: "Oficios" },
+          { id: 1, name: "Plomería", category: "fontaneria" },
+          { id: 2, name: "Electricidad", category: "electricidad" },
+          { id: 3, name: "Carpintería", category: "Carpinteria" },
         ]);
         setCities([
-          { id: 1, nombre: "Madrid" },
-          { id: 2, nombre: "Barcelona" },
-          { id: 3, nombre: "Valencia" },
+          { id: 1, name: "Madrid" },
+          { id: 2, name: "Barcelona" },
+          { id: 3, name: "Valencia" },
         ]);
       } finally {
         setLoadingOptions(false);
@@ -106,7 +147,7 @@ export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId
         {/* Input de texto para búsqueda */}
         <div className="col-md-4">
           <label htmlFor="q" className="form-label">
-            Buscar por nombre o usuario
+            Buscar por name o usuario
           </label>
           <input
             type="text"
@@ -124,20 +165,20 @@ export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId
           <label htmlFor="service_id" className="form-label">
             Servicio
           </label>
-          <select
-            className="form-control"
-            id="service_id"
-            name="service_id"
-            value={filters.service_id}
-            onChange={handleChange}
-          >
-            <option value="">Todos los servicios</option>
-            {services.map((service) => (
-              <option key={service.id} value={service.id}>
-                {service.nombre}
-              </option>
-            ))}
-          </select>
+            <select
+              className="form-control"
+              id="service_id"
+              name="service_id"
+              value={filters.service_id}
+              onChange={handleChange}
+            >
+              <option value="">Todas las categorías</option>
+              {categories.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
         </div>
 
         {/* Select de ciudades */}
@@ -155,7 +196,7 @@ export const SearchForm = ({ onSearch, initialQ, initialServiceId, initialCityId
             <option value="">Todas las ciudades</option>
             {cities.map((city) => (
               <option key={city.id} value={city.id}>
-                {city.nombre}
+                {city.name.charAt(0).toUpperCase() + city.name.slice(1)}
               </option>
             ))}
           </select>

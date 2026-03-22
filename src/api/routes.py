@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User, Service, City, Company, ServiceCategory, UserProfile, Booking, PaymentMethod, Notification, BookingStatus, PaymentMethodType, Opinion
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-from sqlalchemy import select
+from sqlalchemy import select, and_, or_
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import stripe
@@ -37,42 +37,42 @@ def search():
     city_id = request.args.get("city_id")
 
     # Query base: usuarios que tengan al menos un servicio
-    query = db.session.query(User).join(User.history)
-
+    query = db.session.query(Service).join(Company).join(City)
+    filters = []
     # Filtro de texto (nombre, apellido, email)
     if q:
-        query = query.filter(
-            (User.firstname.ilike(f"%{q}%")) |
-            (User.lastname.ilike(f"%{q}%")) |
-            (User.email.ilike(f"%{q}%"))
+        search = f"%{q}%"
+        filters.append(
+            or_(
+            (Company.name.ilike(search)) |
+            (Company.email.ilike(search)) |
+            (Service.name.ilike(search))
+            )
         )
 
     # Filtro por servicio
     if service_id:
-        query = query.filter(Service.id == service_id)
+        filters.append(Service.category == ServiceCategory(service_id))
 
     # Filtro por ciudad (en el servicio)
     if city_id:
-        query = query.filter(Service.city_id == city_id)
+        filters.append(Service.city_id == city_id)
 
     # Evitar duplicados
-    query = query.distinct()
+    if filters:
+        query = query.filter(and_(*filters))
 
-    users = query.all()
+    services = query.all()
 
-    # Serializar usuarios y sus servicios
     results = []
-    for user in users:
-        user_data = {
-            "id": user.id,
-            "username": user.email,  # O usa otro campo si tienes username
-            "name": user.firstname,
-            "lastname": user.lastname,
-            "email": user.email,
-            "telefono": user.phone,
-            "servicios": [s.serialize() for s in user.history]
-        }
-        results.append(user_data)
+    for service in services:
+        service_data = service.serialize()
+        service_data["company_name"] = service.company.name if service.company else "Sin nombre"
+        service_data["company_email"] = service.company.email if service.company else "Sin email"
+        service_data["company_phone"] = service.company.phone if service.company else "Sin teléfono"
+        service_data["company_rate"] = service.company.rate if service.company else 0
+        
+        results.append(service_data)
 
     return jsonify(results), 200
 
@@ -82,7 +82,7 @@ def search():
 @api.route("/services", methods=["GET"])
 def get_services():
     db_services = db.session.query(Service).all()
-    services = [{"id": service.id, "nombre": service.name} for service in db_services]
+    services = [service.serialize() for service in db_services]
     return jsonify(services), 200
 
 @api.route("/cities", methods=["GET"])
@@ -92,6 +92,7 @@ def get_cities():
         return jsonify({"msg": "No hay ciudades disponibles"}), 404
     cities = [city.serialize() for city in db_cities]
     return jsonify(cities), 200
+
 
 @api.route("/cities", methods=["POST"])
 def create_city():
@@ -138,7 +139,7 @@ def login():
         access_token = create_access_token(identity=str(company.id))
         return jsonify({
             "access_token": access_token,
-            "company": {
+            "user": {
                 "id": company.id,
                 "email": company.email,
                 "user_type": "company"
@@ -198,6 +199,7 @@ def get_profile():
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
     return jsonify(user.serialize()), 200
+
 
 
 @api.route("/user", methods=["GET"])
@@ -537,45 +539,50 @@ def update_company(company_id):
 @api.route('/company/services', methods=['GET'])
 @jwt_required()
 def get_company_services():
-    """Obtener servicios de una empresa"""
-    company_id = get_jwt_identity()
-    company = Company.query.get(company_id)
-    if not company:
-        return jsonify({"error": "Empresa no encontrada"}), 404
-
+    company_id = get_jwt_identity() # Extrae el ID del Token
     services = Service.query.filter_by(company_id=company_id).all()
     return jsonify([service.serialize() for service in services]), 200
 
-
-@api.route('/company/<int:company_id>/services', methods=['POST'])
-def create_service(company_id):
-    """Crear un nuevo servicio"""
+# 2. POST: Crear servicio (Corregida con Seguridad y Enums)
+@api.route('/company/services', methods=['POST']) # Quitamos el ID de la URL por seguridad
+@jwt_required()
+def create_service():
+    # Extraemos el ID de la empresa directamente del TOKEN
+    company_id = get_jwt_identity() 
     data = request.json
 
-    company = Company.query.get(company_id)
-    if not company:
-        return jsonify({"error": "Empresa no encontrada"}), 404
-
-    required_fields = ['name', 'category', 'direction', 'price', 'city_id']
+    # Validación de campos
+    required_fields = ["name", "category", "direction", "price", "city_id"]
     for field in required_fields:
-        if field not in data:
+        if not data.get(field):
             return jsonify({"error": f"Campo '{field}' requerido"}), 400
 
-    service = Service(
-        company_id=company_id,
-        name=data.get('name'),
-        category=data.get('category'),
-        direction=data.get('direction'),
-        price=data.get('price'),
-        city_id=data.get('city_id'),
-        user_id=data.get('user_id'),
-        all_day=data.get('all_day', False)
-    )
+    try:
+        # IMPORTANTE: Convertir el string del frontend al Enum de Python
+        # Si data['category'] es "fontanería", buscamos ServiceCategory.FONTANERÍA
+        try:
+            category_enum = ServiceCategory(data['category'].lower())
+        except ValueError:
+            return jsonify({"error": "Categoría no válida"}), 400
 
-    db.session.add(service)
-    db.session.commit()
+        new_service = Service(
+            company_id=company_id,
+            name=data.get('name'),
+            category=category_enum, # Pasamos el objeto Enum, no el string
+            direction=data.get('direction'),
+            price=float(data.get('price')),
+            city_id=int(data.get('city_id')),
+            all_day=data.get('all_day', False)
+        )
 
-    return jsonify(service.serialize()), 201
+        db.session.add(new_service)
+        db.session.commit()
+
+        return jsonify(new_service.serialize()), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 @api.route('/service/<int:service_id>', methods=['PUT'])
@@ -620,7 +627,14 @@ def get_company_opinions(company_id):
         return jsonify({"error": "Empresa no encontrada"}), 404
 
     opinions = Opinion.query.filter_by(company_id=company_id).all()
-    return jsonify([opinion.serialize() for opinion in opinions]), 200
+    results = []
+    for opinion in opinions:
+        opinion_data = opinion.serialize()
+        opinion_data["author_name"] = opinion.author.name if opinion.author else "Sin nombre"
+        opinion_data["author_lastname"] = opinion.author.lastname if opinion.author else "Sin apellido"
+        results.append(opinion_data)
+
+    return jsonify(results), 200
 
 
 @api.route('/company/<int:company_id>/opinions', methods=['POST'])
@@ -866,3 +880,69 @@ def registerCompany():
     db.session.add(new_company)
     db.session.commit()
     return jsonify({"message": "Su empresa ha sido creada exitosamente"}), 201
+
+@api.route("/service-categories", methods=["GET"])
+def get_service_categories():
+    categories = [{"value": c.value, "label": c.value.capitalize()} for c in ServiceCategory]
+    return jsonify(categories), 200
+
+@api.route('/companies', methods=['GET'])
+def get_companies():
+    companies = Company.query.all()
+    return jsonify([c.serialize() for c in companies]), 200
+
+@api.route('/reviews', methods=['POST'])
+def create_review():
+    data = request.json
+    
+    # Extraer con valores por defecto para evitar NoneType errors
+    rating = data.get("rating")
+    comment = data.get("comment", "")
+    company_id = data.get("company_id")
+    user_id = data.get("user_id")
+
+    try:
+        new_review = Opinion(
+            user_id=int(user_id), # Forzamos entero
+            company_id=int(company_id),
+            rating=int(rating),
+            comment=comment
+        )
+
+        db.session.add(new_review)
+        
+        # Actualización del rate de la empresa
+        company = Company.query.get(company_id)
+        if company:
+            # Buscamos todas las opiniones de esta empresa
+            reviews = Opinion.query.filter_by(company_id=company_id).all()
+            # Calculamos la media incluyendo la nueva
+            total_sum = sum([r.rating for r in reviews]) + int(rating)
+            new_media = (total_sum / (len(reviews) + 1))
+            company.rate = round(new_media, 1)
+
+        db.session.commit()
+        return jsonify({"msg": "Valoración guardada"}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        # Imprime esto en tu terminal para ver el fallo real
+        print(f"DEBUG ERROR: {str(e)}") 
+        return jsonify({"msg": "Error interno", "error": str(e)}), 500
+
+@api.route('/company-profile', methods=['GET'])
+def get_company_profile():
+    company_id = request.args.get("company_id")
+    
+    if not company_id:
+        return jsonify({"msg": "Falta el ID de la empresa"}), 400
+        
+    company = Company.query.get(company_id)
+    if not company:
+        return jsonify({"msg": "Empresa no encontrada"}), 404
+    
+    company_data = company.serialize()
+    categories = list(set(service.category.value for service in company.services))
+    company_data["categories"] = categories
+    
+    return jsonify(company_data), 200

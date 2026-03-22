@@ -5,6 +5,7 @@ from sqlalchemy import String, Boolean, Enum as SQLEnum, Float, Integer, Column,
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from flask_bcrypt import generate_password_hash, check_password_hash
+from typing import Optional
 
 db = SQLAlchemy()
 
@@ -103,16 +104,16 @@ class ServiceCategory(enum.Enum):
     REFORMAS = "reformas"
     LIMPIEZA = "limpieza"
     MUDANZAS = "mudanzas"
-    CATEGORÍA = "categoría"
+    PINTURA = "pintura"
 
 class Service(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    category: Mapped[str] = mapped_column(SQLEnum(ServiceCategory), default=ServiceCategory.CATEGORÍA, nullable=False)
+    category: Mapped[str] = mapped_column(SQLEnum(ServiceCategory), default=ServiceCategory.COMERCIOS, nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     city_id: Mapped[int] = mapped_column(ForeignKey("city.id"), nullable=False)
     company_id: Mapped[int] = mapped_column(
         ForeignKey("company.id"), nullable=False)
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user.id"), nullable=True)
     direction: Mapped[str] = mapped_column(nullable=False)
     all_day: Mapped[bool] = mapped_column(nullable=False)
     price: Mapped[float] = mapped_column(nullable=False)
@@ -124,7 +125,7 @@ class Service(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "category": self.category,
+            "category": self.category.value,
             "name": self.name,
             "company_id": self.company_id,
             "direction": self.direction,

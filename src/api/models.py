@@ -41,9 +41,11 @@ class User(db.Model):
             "name": self.name,
             "lastname": self.lastname,
             "phone": self.phone,
-            "opinions": [opinion.serialize() for opinion in self.opinions],
-            "history": [service.serialize() for service in self.history]
+            "opinions": self.opinions,
+            "history": self.history
         }
+
+
 
 
 class Company(db.Model):
@@ -65,12 +67,6 @@ class Company(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def check_password(self, password):
-        return compare_digest(self.password, password)
-
-    def set_password(self, password):
-        self.password = password
-
     def serialize(self):
         return {
             "id": self.id,
@@ -81,6 +77,8 @@ class Company(db.Model):
             "opinions": self.opinions,
             "services": self.services
         }
+
+
 
 
 class City(db.Model):
@@ -133,6 +131,8 @@ class Service(db.Model):
             "all_day": self.all_day,
             "price": self.price
         }
+
+
 
 
 class Opinion(db.Model):

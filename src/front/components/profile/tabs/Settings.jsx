@@ -22,7 +22,7 @@ const Settings = ({ userId, entityType = "user" }) => {
                 const token = localStorage.getItem('token');
 
                 const response = await fetch(
-                    `${backendUrl}/api/profile?user_id=${userId}&entity_type=${entityType}`,
+                    `${backendUrl}/api/${entityType}`,
                     {
                         headers: {
                             ...(token ? { "Authorization": `Bearer ${token}` } : {}),

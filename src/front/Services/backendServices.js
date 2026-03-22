@@ -11,12 +11,10 @@ export const login = async (user, navigate) => {
   );
   const data = await response.json();
   if (!response.ok) {
-    alert(data.msg || data.error);
+    alert(data.error);
     return;
   }
   localStorage.setItem("token", data.access_token);
-  localStorage.setItem("user_id", data.user.id);
-  localStorage.setItem("user_type", data.user.type);
   navigate("/");
 };
 
@@ -48,12 +46,13 @@ export const signupCompany = async (company, navigate) => {
       body: JSON.stringify(company),
     },
   );
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : {};
+  const data = await response.json();
+  console.log(data);
+
   if (!response.ok) {
     alert(data.error);
   } else {
-    alert(data.message);
+    alert("Empresa creada correctamente");
     navigate("/login");
   }
 };

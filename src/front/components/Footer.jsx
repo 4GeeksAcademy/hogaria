@@ -11,8 +11,6 @@ export const Footer = () => {
 
         <span className="footer-logo">Hogaria</span>
 
-        <Link to="/services">Servicios</Link>
-
         <Link to="/support">Atención al cliente</Link>
 
         <Link to="/review">Valorar servicio</Link>

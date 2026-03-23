@@ -46,7 +46,7 @@ export const Navbar = () => {
           {userType === "company" ? (
             <img src={logo} alt="Hogaria Logo" style={{ cursor: "default" }} />
           ) : (
-            <Link to="/">
+            <Link to="/home">
               <img src={logo} alt="Hogaria Logo" />
             </Link>
           )}

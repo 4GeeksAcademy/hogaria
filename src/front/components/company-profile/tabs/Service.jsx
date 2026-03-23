@@ -19,8 +19,8 @@ const Services = ({ companyId }) => {
   });
 
   const categorias = [
-    "fontaneria", "cerrajeria", "electricidad", "pintura", 
-    "limpieza", "reformas", "mudanzas", "comercios", "climatizacion"
+    "fontanería", "cerrajería", "electricidad", "pintura", 
+    "limpieza", "reformas", "mudanzas", "comercios", "climatización"
   ];
 
   useEffect(() => {

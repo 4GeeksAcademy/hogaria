@@ -54,7 +54,6 @@ export const router = createBrowserRouter(
       <Route path="/map" element={<Map />} />
       <Route path="/company-profile" element={<CompanyProfile />} />
       <Route path="checkout" element={<Checkout />} />
-      <Route path="checkout-test" element={<CheckoutTest />} />
       <Route path="success" element={<Success />} />
       <Route path="cancel" element={<Cancel />} />
     </Route>

@@ -1,6 +1,7 @@
-// SearchResults: Muestra los resultados de la búsqueda de profesionales en una tabla.
-// Recibe como prop 'services', que es un array de objetos profesional.
+
 export const SearchResults = ({ services }) => {
+
+  const goToService = () => {}
 
   const mostrarEstrellas = (rate) => {
   if (!rate) return "Sin valorar";
@@ -8,19 +9,18 @@ export const SearchResults = ({ services }) => {
   const allStarts = Math.round(rate);
   return "★".repeat(allStarts) + "☆".repeat(5 - allStarts);
   };
-  // Si no hay resultados, no renderiza nada
+
   if (!services || services.length === 0) {
     return null;
   }
 
   return (
     <div className="results-container">
-      {/* Título con el número de resultados encontrados */}
+
       <h3 className="mb-4">
-        Resultados ({services.length} profesional{services.length !== 1 ? "es" : ""})
+        Resultados ({services.length} servicio{services.length !== 1 ? "s" : ""})
       </h3>
 
-      {/* Tabla de resultados */}
       <div className="table-responsive">
         <table className="table table-hover">
           <thead>
@@ -35,7 +35,7 @@ export const SearchResults = ({ services }) => {
           </thead>
           <tbody>
             {services.map((service) => (
-              <tr key={service.id}>
+              <tr key={service.id} onClick={goToService}>
                 <td>{service.name}</td>
 
                 <td>{service.company_name}</td>

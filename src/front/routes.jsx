@@ -52,11 +52,6 @@ export const router = createBrowserRouter(
       <Route path="/review" element={<Review />} />
       <Route path="/Legal" element={<Legal />} />
       <Route path="/map" element={<Map />} />
-      <Route path="register" element={<ChooseAccount />} />
-      <Route path="register/user" element={<RegisterUser />} />
-      <Route path="register/company" element={<RegisterCompany />} />
-      <Route path="support" element={<CustomerSupport />} />
-      <Route path="review" element={<Review />} />
       <Route path="/company-profile" element={<CompanyProfile />} />
       <Route path="checkout" element={<Checkout />} />
       <Route path="checkout-test" element={<CheckoutTest />} />

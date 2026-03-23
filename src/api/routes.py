@@ -117,7 +117,7 @@ def login():
 
     if not email or not password:
         return jsonify({"msg": "Email y password son requeridos"}), 400
-
+    
     user = db.session.execute(select(User).where(
         User.email == email)).scalar_one_or_none()
 
@@ -145,8 +145,7 @@ def login():
                 "user_type": "company"
             }
         }), 200
-
-    return jsonify({"msg": "Credenciales inválidas"}), 401
+    return jsonify({"error": "Credenciales inválidas"}), 401
 
 
 @api.route("/google-login", methods=["POST"])
@@ -547,7 +546,6 @@ def get_company_services():
 @api.route('/company/services', methods=['POST']) # Quitamos el ID de la URL por seguridad
 @jwt_required()
 def create_service():
-    # Extraemos el ID de la empresa directamente del TOKEN
     company_id = get_jwt_identity() 
     data = request.json
 
@@ -558,8 +556,6 @@ def create_service():
             return jsonify({"error": f"Campo '{field}' requerido"}), 400
 
     try:
-        # IMPORTANTE: Convertir el string del frontend al Enum de Python
-        # Si data['category'] es "fontanería", buscamos ServiceCategory.FONTANERÍA
         try:
             category_enum = ServiceCategory(data['category'].lower())
         except ValueError:
@@ -586,42 +582,54 @@ def create_service():
 
 
 @api.route('/service/<int:service_id>', methods=['PUT'])
+@jwt_required()
 def update_service(service_id):
-    """Actualizar un servicio"""
     data = request.json
-    service = Service.query.get(service_id)
+    service = db.session.get(Service, service_id)
 
     if not service:
         return jsonify({"error": "Servicio no encontrado"}), 404
 
-    service.name = data.get('name', service.name)
-    service.category = data.get('category', service.category)
-    service.price = data.get('price', service.price)
-    service.direction = data.get('direction', service.direction)
-    service.all_day = data.get('all_day', service.all_day)
+    try:
+            
+        service.category = ServiceCategory(data['category'])
+        service.name = data.get('name', service.name)
+        service.price = float(data.get('price', service.price))
+        service.direction = data.get('direction', service.direction)
+        service.all_day = bool(data.get('all_day', service.all_day))
+        
+        if 'city_id' in data and data['city_id']:
+            service.city_id = int(data['city_id'])
 
-    db.session.commit()
-    return jsonify(service.serialize()), 200
+        db.session.commit()
+        return jsonify({"success": True, "message": "Actualizado"}), 200
 
-
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en el servidor: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
 @api.route('/service/<int:service_id>', methods=['DELETE'])
+@jwt_required()
 def delete_service(service_id):
-    """Eliminar un servicio"""
-    service = Service.query.get(service_id)
+    service = db.session.get(Service, service_id)
+
     if not service:
         return jsonify({"error": "Servicio no encontrado"}), 404
 
-    db.session.delete(service)
-    db.session.commit()
+    try:
+        db.session.delete(service)
+        db.session.commit()
+        return jsonify({"success": True, "message": "Actualizado"}), 200
 
-    return jsonify({"message": "Servicio eliminado"}), 200
-
-# Endpoints de Opiniones
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error en el servidor: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 @api.route('/company/<int:company_id>/opinions', methods=['GET'])
 def get_company_opinions(company_id):
-    """Obtener opiniones de una empresa"""
     company = Company.query.get(company_id)
     if not company:
         return jsonify({"error": "Empresa no encontrada"}), 404
@@ -811,7 +819,7 @@ def save_payment():
 def registerUser():
 
     data = request.get_json()
-    email = data.get("email")
+    email = data.get("email").lower().strip()
     password = data.get("password")
     name = data.get("name")
     lastname = data.get("lastname")
@@ -850,7 +858,7 @@ def registerUser():
 def registerCompany():
 
     data = request.get_json()
-    email = data.get("email")
+    email = data.get("email").lower().strip()
     password = data.get("password")
     name = data.get("name")
     phone = data.get("phone")
@@ -879,7 +887,7 @@ def registerCompany():
 
     db.session.add(new_company)
     db.session.commit()
-    return jsonify({"message": "Su empresa ha sido creada exitosamente"}), 201
+    return jsonify({"message": "Su ecuenta de empresa ha sido creada exitosamente"}), 201
 
 @api.route("/service-categories", methods=["GET"])
 def get_service_categories():

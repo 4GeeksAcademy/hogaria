@@ -76,9 +76,6 @@ def search():
 
     return jsonify(results), 200
 
-
-# Endpoint mock para servicios
-
 @api.route("/services", methods=["GET"])
 def get_services():
     db_services = db.session.query(Service).all()
@@ -271,39 +268,40 @@ def change_password():
 
 
 @api.route('/user/bookings', methods=['GET'])
+@jwt_required()
 def get_user_bookings():
-    "Obtener todas las reservas del usuario"
+    """Obtener todas las reservas del usuario autenticado"""
+    user_id = get_jwt_identity()
 
-    user_id = request.args.get('user_id', type=int)
-
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
-
-    bookings = Booking.query.filter_by(user_id=user_id).all()
+    bookings = Booking.query.filter_by(user_id=int(user_id)).all()
     return jsonify([booking.serialize() for booking in bookings]), 200
 
-
 @api.route('/user/bookings', methods=['POST'])
+@jwt_required()
 def create_booking():
-    "Crear una nueva reserva"
-    data = request.json
-    user_id = request.args.get('user_id', type=int)
+    """Crear una nueva reserva"""
+    data = request.get_json()
+    user_id = get_jwt_identity()
 
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
+    service_id = data.get("service_id")
+    date = data.get("date")
+    description = data.get("description")
 
-    # Validar datos requeridos
-    required_fields = ['service_name', 'date', 'price']
-    for field in required_fields:
-        if field not in data:
-            return jsonify({"error": f"Campo '{field}' requerido"}), 400
+    if not service_id or not date:
+        return jsonify({"error": "service_id y date son requeridos"}), 400
+
+    service = Service.query.get(service_id)
+    if not service:
+        return jsonify({"error": "Servicio no encontrado"}), 404
 
     booking = Booking(
-        user_id=user_id,
-        service_name=data.get('service_name'),
-        description=data.get('description'),
-        date=data.get('date'),
-        price=data.get('price'),
+        user_id=int(user_id),
+        company_id=service.company_id,
+        service_id=service.id,
+        service_name=service.name,
+        description=description,
+        date=date,
+        price=service.price,
         status=BookingStatus.PENDING
     )
 
@@ -314,44 +312,53 @@ def create_booking():
 
 
 @api.route('/user/bookings/<int:booking_id>', methods=['GET'])
+@jwt_required()
 def get_booking(booking_id):
-    "Obtener detalles de una reserva específica"
-
+    user_id = int(get_jwt_identity())
     booking = Booking.query.get(booking_id)
+
     if not booking:
         return jsonify({"error": "Reserva no encontrada"}), 404
+
+    if booking.user_id != user_id:
+        return jsonify({"error": "No autorizado"}), 403
 
     return jsonify(booking.serialize()), 200
 
 
 @api.route('/user/bookings/<int:booking_id>', methods=['PUT'])
+@jwt_required()
 def update_booking(booking_id):
-    "Actualizar una reserva"
-
-    data = request.json
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
     booking = Booking.query.get(booking_id)
 
     if not booking:
         return jsonify({"error": "Reserva no encontrada"}), 404
 
-    booking.service_name = data.get('service_name', booking.service_name)
+    if booking.user_id != user_id:
+        return jsonify({"error": "No autorizado"}), 403
+
     booking.description = data.get('description', booking.description)
     booking.date = data.get('date', booking.date)
-    booking.price = data.get('price', booking.price)
-    booking.status = BookingStatus(data.get('status', booking.status.value))
 
     db.session.commit()
     return jsonify(booking.serialize()), 200
 
 
 @api.route('/user/bookings/<int:booking_id>', methods=['DELETE'])
+@jwt_required()
 def delete_booking(booking_id):
-    """Cancelar/Eliminar una reserva"""
+    """Cancelar reserva del usuario autenticado"""
+    user_id = int(get_jwt_identity())
     booking = Booking.query.get(booking_id)
+
     if not booking:
         return jsonify({"error": "Reserva no encontrada"}), 404
 
-    # Cambiar estado a CANCELLED en lugar de eliminar
+    if booking.user_id != user_id:
+        return jsonify({"error": "No autorizado"}), 403
+
     booking.status = BookingStatus.CANCELLED
     db.session.commit()
 
@@ -359,27 +366,22 @@ def delete_booking(booking_id):
 
 
 @api.route('/user/payment-methods', methods=['GET'])
+@jwt_required()
 def get_payment_methods():
-    """Obtener métodos de pago del usuario"""
-    user_id = request.args.get('user_id', type=int)
-
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
+    """Obtener métodos de pago del usuario autenticado"""
+    user_id = int(get_jwt_identity())
 
     methods = PaymentMethod.query.filter_by(user_id=user_id).all()
     return jsonify([method.serialize() for method in methods]), 200
 
 
 @api.route('/user/payment-methods', methods=['POST'])
+@jwt_required()
 def create_payment_method():
     """Crear un nuevo método de pago"""
-    data = request.json
-    user_id = request.args.get('user_id', type=int)
+    data = request.get_json()
+    user_id = int(get_jwt_identity())
 
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
-
-    # Validar datos
     required_fields = ['type', 'holder_name']
     for field in required_fields:
         if field not in data:
@@ -400,13 +402,18 @@ def create_payment_method():
 
 
 @api.route('/user/payment-methods/<int:method_id>', methods=['PUT'])
+@jwt_required()
 def update_payment_method(method_id):
     """Actualizar un método de pago"""
-    data = request.json
+    user_id = int(get_jwt_identity())
+    data = request.get_json()
     method = PaymentMethod.query.get(method_id)
 
     if not method:
         return jsonify({"error": "Método de pago no encontrado"}), 404
+
+    if method.user_id != user_id:
+        return jsonify({"error": "No autorizado"}), 403
 
     method.holder_name = data.get('holder_name', method.holder_name)
     method.is_default = data.get('is_default', method.is_default)
@@ -416,11 +423,17 @@ def update_payment_method(method_id):
 
 
 @api.route('/user/payment-methods/<int:method_id>', methods=['DELETE'])
+@jwt_required()
 def delete_payment_method(method_id):
     """Eliminar un método de pago"""
+    user_id = int(get_jwt_identity())
     method = PaymentMethod.query.get(method_id)
+
     if not method:
         return jsonify({"error": "Método de pago no encontrado"}), 404
+
+    if method.user_id != user_id:
+        return jsonify({"error": "No autorizado"}), 403
 
     db.session.delete(method)
     db.session.commit()

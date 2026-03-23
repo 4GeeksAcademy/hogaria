@@ -197,6 +197,8 @@ class PaymentMethodType(enum.Enum):
 class Booking(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    company_id: Mapped[int] = mapped_column(ForeignKey("company.id"), nullable=False)
+    service_id: Mapped[int] = mapped_column(ForeignKey("service.id"), nullable=False)
     service_name: Mapped[str] = mapped_column(String(255), nullable=False)
 
     description: Mapped[str] = mapped_column(Text, nullable=True)
@@ -206,18 +208,21 @@ class Booking(db.Model):
     price: Mapped[float] = mapped_column(Float, nullable=False)
 
     user: Mapped["User"] = relationship("User")
+    company: Mapped["Company"] = relationship("Company")
+    service: Mapped["Service"] = relationship("Service")
 
     def serialize(self):
         return {
             "id": self.id,
             "user_id": self.user_id,
+            "company_id": self.company_id,
+            "service_id": self.service_id,
             "service_name": self.service_name,
             "description": self.description,
             "date": self.date if isinstance(self.date, str) else self.date.isoformat(),
             "status": self.status.value,
             "price": self.price,
         }
-
 
 class PaymentMethod(db.Model):
     "Modelo de Métodos de Pago y Transacciones"

@@ -147,9 +147,7 @@ def login():
 
 @api.route("/google-login", methods=["POST"])
 def google_login():
-
     token = request.json.get("token")
-
     try:
         idinfo = id_token.verify_oauth2_token(
             token,
@@ -157,16 +155,21 @@ def google_login():
             "3815072650-c4055m3c1jvbe74af5jqve8clov2ib9t.apps.googleusercontent.com"
         )
 
-        email = idinfo["email"]
-        name = idinfo.get("name")
+        email = idinfo["email"].lower().strip()
+        name = idinfo.get("given_name", idinfo.get("name", "Usuario"))
+        lastname = idinfo.get("family_name", "Google")
 
-        # buscar usuario en la base de datos
         user = User.query.filter_by(email=email).first()
 
         if not user:
             user = User(
-                email=email
+                email=email,
+                name=name,
+                lastname=lastname,
+                phone="000000000" # Valor por defecto para evitar errores de integridad
             )
+            # Como viene de Google, no necesita password, pero puedes poner una aleatoria si tu modelo la obliga
+            user.set_password(os.urandom(16).hex()) 
             db.session.add(user)
             db.session.commit()
 
@@ -174,13 +177,16 @@ def google_login():
 
         return jsonify({
             "access_token": access_token,
+            "user_type": "user",
+            "user_id": user.id,
             "user": {
                 "email": email,
                 "name": name
             }
         }), 200
 
-    except ValueError:
+    except Exception as e:
+        print(f"Error Google Login: {str(e)}")
         return jsonify({"msg": "Invalid Google token"}), 401
 
 

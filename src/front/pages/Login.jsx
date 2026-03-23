@@ -23,38 +23,36 @@ export const Login = () => {
       login(user, navigate)
   }
   
-  const handleGoogleLogin = async (credentialResponse) => {
-
-    try {
-
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/google-login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            token: credentialResponse.credential
-          })
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.msg || "Google login failed");
+const handleGoogleLogin = async (credentialResponse) => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_BACKEND_URL}/api/google-login`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: credentialResponse.credential })
       }
+    );
 
-      localStorage.setItem("token", data.access_token);
-      navigate("/");
+    const data = await response.json();
 
-    } catch (error) {
-      console.error(error);
-      alert("Google login error");
+    if (!response.ok) {
+      throw new Error(data.msg || "Google login failed");
     }
 
-  };
+    // CRUCIAL: Guardar todo lo que necesita tu Navbar
+    localStorage.setItem("token", data.access_token);
+    localStorage.setItem("user_type", "user"); 
+    localStorage.setItem("user_id", data.user_id);
+
+    navigate("/");
+    window.location.reload(); // Para que la Navbar detecte los cambios de localStorage al instante
+
+  } catch (error) {
+    console.error(error);
+    alert("Error al iniciar sesión con Google");
+  }
+};
 
   return (
 

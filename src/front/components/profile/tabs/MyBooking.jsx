@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const MyBooking = ({ userId }) => {
+    const navigate = useNavigate();
     const [bookings, setBookings] = useState([]);
     const [activeFilter, setActiveFilter] = useState("upcoming");
     const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ const MyBooking = ({ userId }) => {
 
             {/* Botón CTA */}
             <div className="mb-4">
-                <button className="btn btn-success btn-lg">
+                <button className="btn btn-success btn-lg" onClick={() => navigate("/search")}>
                     <i className="fas fa-plus me-2"></i> Solicitar Nuevo Servicio
                 </button>
             </div>

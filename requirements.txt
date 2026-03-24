@@ -29,3 +29,4 @@ flask-jwt-extended
 flask-sqlalchemy
 flask-cors
 google-auth
+tomli

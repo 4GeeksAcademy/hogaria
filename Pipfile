@@ -24,6 +24,7 @@ flask-cors = "*"
 google-auth = "*"
 google-auth-oauthlib = "*"
 stripe = "*"
+tomli = "*"
 
 [requires]
 python_version = "3.13"

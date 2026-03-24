@@ -156,38 +156,34 @@ def google_login():
         )
 
         email = idinfo["email"].lower().strip()
-        name = idinfo.get("given_name", idinfo.get("name", "Usuario"))
-        lastname = idinfo.get("family_name", "Google")
-
         user = User.query.filter_by(email=email).first()
+        is_new = False
 
         if not user:
+            is_new = True
             user = User(
                 email=email,
-                name=name,
-                lastname=lastname,
-                phone="000000000" # Valor por defecto para evitar errores de integridad
+                name=idinfo.get("given_name", "Usuario"),
+                lastname=idinfo.get("family_name", "Google"),
+                phone=""
             )
-            # Como viene de Google, no necesita password, pero puedes poner una aleatoria si tu modelo la obliga
             user.set_password(os.urandom(16).hex()) 
             db.session.add(user)
             db.session.commit()
+        
+        elif not user.phone or user.phone == "000000000":
+            is_new = True
 
         access_token = create_access_token(identity=user.id)
 
         return jsonify({
             "access_token": access_token,
-            "user_type": "user",
             "user_id": user.id,
-            "user": {
-                "email": email,
-                "name": name
-            }
+            "is_new": is_new,
+            "user_type": "user"
         }), 200
-
     except Exception as e:
-        print(f"Error Google Login: {str(e)}")
-        return jsonify({"msg": "Invalid Google token"}), 401
+        return jsonify({"msg": str(e)}), 400
 
 
 @api.route("/profile", methods=["GET"])
@@ -200,7 +196,19 @@ def get_profile():
     user = User.query.get(user_id)
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
-    return jsonify(user.serialize()), 200
+
+    user_data = user.serialize()
+
+    for opinion_data in user_data.get("opinions", []):
+
+        company = Company.query.get(opinion_data["company_id"])
+        
+        if company:
+            opinion_data["service_name"] = company.name # O 'company.service'
+        else:
+            opinion_data["service_name"] = "Servicio desconocido"
+
+    return jsonify(user_data), 200
 
 
 
@@ -218,10 +226,9 @@ def get_user():
     return jsonify(user.serialize()), 200
 
 
+
 @api.route('/user/profile', methods=['PUT'])
 def update_user_profile():
-    "Actualizar perfil del usuario"
-
     data = request.json
     user_id = request.args.get('user_id', type=int)
 
@@ -232,45 +239,60 @@ def update_user_profile():
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    # Actualizar campos
+    if 'email' in data and data['email']:
+        user.email = data['email']
+    
+    if 'phone' in data:
+        user.phone = data['phone']
+    
     name = data.get('name')
     if name:
         parts = name.strip().split(" ", 1)
-        user.firstname = parts[0]
-        if len(parts) > 1:
-            user.lastname = parts[1]
-    user.phone = data.get('phone', user.phone)
-    user.email = data.get('email', user.email)
+        user.name = parts[0]
+        user.lastname = parts[1] if len(parts) > 1 else ""
 
-    db.session.commit()
-    return jsonify(user.serialize()), 200
-
+    try:
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.serialize()), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al guardar en base de datos: {str(e)}"}), 500
+    
 
 @api.route('/user/change-password', methods=['POST'])
 def change_password():
-
     data = request.json
     user_id = request.args.get('user_id', type=int)
+    user_type = request.args.get('user_type')
+    
 
-    if not user_id:
-        return jsonify({"error": "user_id requerido"}), 400
+    if user_type == "company":
+        target = Company.query.get(user_id)
+    else:
+        target = User.query.get(user_id)
 
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "Usuario no encontrado"}), 404
+    if not target:
+        return jsonify({"error": "Cuenta no encontrada"}), 404
 
-     # Validar contraseña actual con hash
+    current_pw = data.get('current_password')
+    new_pw = data.get('new_password')
 
-    current_password = data.get('current_password')
-    new_password = data.get('new_password')
+    if not current_pw or not new_pw:
+        return jsonify({"error": "Datos incompletos"}), 400
 
-    if not current_password or not new_password:
-        return jsonify({"error": "Contraseña actual y nueva requeridas"}), 400
 
-    user.set_password(new_password)
-    db.session.commit()
+    if not target.check_password(current_pw):
+        return jsonify({"error": "La contraseña actual es incorrecta"}), 401
 
-    return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+    try:
+        target.set_password(new_pw)
+        db.session.commit()
+        return jsonify({"message": "Contraseña actualizada correctamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error: {str(e)}")
+        return jsonify({"error": "Error interno al cambiar contraseña"}), 500
 
 
 @api.route('/user/bookings', methods=['GET'])
@@ -535,21 +557,26 @@ def create_company():
     return jsonify(company.serialize()), 201
 
 
-@api.route('/company/<int:company_id>', methods=['PUT'])
-def update_company(company_id):
-    """Actualizar información de empresa"""
+@api.route('/company/update', methods=['PUT'])
+def update_company_profile():
+    company_id = request.args.get("user_id")
     data = request.json
-    company = Company.query.get(company_id)
 
+    company = Company.query.filter_by(id=company_id).first()
+    
     if not company:
-        return jsonify({"error": "Empresa no encontrada"}), 404
+        return jsonify({"msg": "Empresa no encontrada"}), 404
 
-    company.name = data.get('name', company.name)
-    company.phone = data.get('phone', company.phone)
-    company.email = data.get('email', company.email)
+    company.name = data.get("name", company.name)
+    company.phone = data.get("phone", company.phone)
+    company.email = data.get("email", company.email)
 
-    db.session.commit()
-    return jsonify(company.serialize()), 200
+    try:
+        db.session.commit()
+        return jsonify({"msg": "Perfil actualizado con éxito"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"msg": "Error al actualizar", "error": str(e)}), 500
 
 # Endpoints de Servicios
 
@@ -973,3 +1000,6 @@ def get_company_profile():
     company_data["categories"] = categories
     
     return jsonify(company_data), 200
+
+
+

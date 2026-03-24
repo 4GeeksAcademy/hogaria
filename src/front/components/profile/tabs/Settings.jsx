@@ -1,262 +1,180 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-const Settings = ({ userId, entityType = "user" }) => {
+const Settings = ({ user }) => {
+    const navigate = useNavigate();
+    const userType = localStorage.getItem("user_type");
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem("user_id");
+
     const [formData, setFormData] = useState({
         email: "",
         phone: "",
+        name: "",
+        address: "",
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
     });
 
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
-    const [loadingProfile, setLoadingProfile] = useState(false);
-    const [loadingPassword, setLoadingPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const fetchUserData = async () => {
+        const cargarDatos = async () => {
+            const endpoint = userType === "company" ? `/api/company-profile?company_id=${userId}` : `/api/profile?user_id=${userId}`;
             try {
-                // Limpiar URL backend
-                const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
-                const token = localStorage.getItem('token');
-
-                const response = await fetch(
-                    `${backendUrl}/api/${entityType}`,
-                    {
-                        headers: {
-                            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-                        },
-                    }
-                );
+                const response = await fetch(`${backendUrl}${endpoint}`, {
+                    headers: { "Authorization": `Bearer ${token}` },
+                });
                 if (response.ok) {
                     const data = await response.json();
-                    setFormData((prev) => ({
+                    setFormData(prev => ({
                         ...prev,
                         email: data.email || "",
                         phone: data.phone || "",
+                        name: data.name || "",
+                        address: data.address || "",
                     }));
                 }
-            } catch (err) {
-                console.error(err);
+            } catch (error) {
+                console.error("Error al cargar datos:", error);
             }
         };
-
-        if (userId) fetchUserData();
-    }, [userId, entityType]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
+        if (userId) cargarDatos();
+    }, [userId, userType, backendUrl, token]);
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
-        setError("");
-        setMessage("");
-        setLoadingProfile(true);
+        setLoading(true);
+
+        const apiPath = userType === "company" 
+            ? `/api/company/update?user_id=${userId}` 
+            : `/api/user/profile?user_id=${userId}`;
+
+        const datosAEnviar = {
+            email: formData.email,
+            phone: formData.phone,
+            ...(userType === "company" && { name: formData.name, address: formData.address })
+        };
 
         try {
-            // Limpiar URL backend
-            const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
-            const token = localStorage.getItem('token');
+            const response = await fetch(`${backendUrl}${apiPath}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(datosAEnviar),
+            });
 
-            const response = await fetch(
-                `${backendUrl}/api/user/profile?user_id=${userId}&entity_type=${entityType}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-                    },
-                    body: JSON.stringify({
-                        email: formData.email,
-                        phone: formData.phone,
-                    }),
-                }
-            );
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || "Error actualizando perfil");
+            if (response.ok) {
+                alert("Perfil actualizado correctamente");
+            } else {
+                alert("Error al actualizar el perfil");
             }
-
-            console.log("✅ Perfil actualizado correctamente");
-            setMessage("✓ Perfil actualizado correctamente");
-            setTimeout(() => setMessage(""), 3000);
-        } catch (err) {
-            console.error("❌ Error:", err.message);
-            setError(`✗ ${err.message}`);
+        } catch (error) {
+            alert("Error de conexión");
         } finally {
-            setLoadingProfile(false);
+            setLoading(false);
         }
     };
 
+
     const handleChangePassword = async (e) => {
         e.preventDefault();
-        setError("");
-        setMessage("");
-        setLoadingPassword(true);
-
+        
         if (formData.newPassword !== formData.confirmPassword) {
-            setError("Las contraseñas no coinciden");
-            setLoadingPassword(false);
-            return;
-        }
-
-        if (!formData.currentPassword || !formData.newPassword) {
-            setError("Todos los campos de contraseña son requeridos");
-            setLoadingPassword(false);
-            return;
+            return alert("Las contraseñas no coinciden");
         }
 
         try {
-            // Limpiar URL backend
-            const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
-            const token = localStorage.getItem('token');
-
-            const response = await fetch(
-                `${backendUrl}/api/user/change-password?user_id=${userId}&entity_type=${entityType}`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-                    },
-                    body: JSON.stringify({
-                        current_password: formData.currentPassword,
-                        new_password: formData.newPassword,
-                    }),
-                }
-            );
-
-            if (!response.ok) {
-                const data = await response.json();
-                throw new Error(data.error || "Error al cambiar contraseña");
-            }
-
-            console.log("✅ Contraseña actualizada correctamente");
-            setMessage("✓ Contraseña actualizada correctamente");
-            setFormData({
-                ...formData,
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
+            const response = await fetch(`${backendUrl}/api/user/change-password?user_id=${userId}&user_type=${userType}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    current_password: formData.currentPassword,
+                    new_password: formData.newPassword,
+                }),
             });
-            setTimeout(() => setMessage(""), 3000);
-        } catch (err) {
-            console.error("❌ Error:", err.message);
-            setError(`✗ ${err.message}`);
-        } finally {
-            setLoadingPassword(false);
+
+            if (response.ok) {
+
+                setFormData({ ...formData, currentPassword: "", newPassword: "", confirmPassword: "" });
+                
+                alert("Contraseña actualizada con éxito. Por seguridad, inicia sesión de nuevo.");
+
+                localStorage.removeItem("token");
+                localStorage.setItem("user_type", "");
+                localStorage.setItem("user_id", "");
+
+                navigate("/login");
+
+                window.location.reload();
+
+            } else {
+                alert("La contraseña actual es incorrecta");
+            }
+        } catch (error) {
+            alert("Error al cambiar la contraseña");
         }
     };
 
     return (
-        <div className="settings-page">
-            {/* Alertas */}
-            {message && <div className="alert alert-success">{message}</div>}
-            {error && <div className="alert alert-danger">{error}</div>}
-
-            {/* Sección 1: Datos Personales */}
-            <div className="card mb-4">
-                <div className="card-header">
-                    <h5>Datos Personales</h5>
+        <div className="container mt-4">
+            <h2 className="my-3">Configuración de cuenta</h2>
+            
+            <div className="card shadow-sm border-0 mb-4">
+                <div className="card-header bg-success text-white">
+                    <h5 className="mb-0">{userType === "company" ? "Datos de Empresa" : "Datos Personales"}</h5>
                 </div>
-                <div className="card-body">
+                <div className="card-body p-4">
                     <form onSubmit={handleUpdateProfile}>
+                        {userType === "company" && (
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">Nombre Comercial</label>
+                                <input type="text" className="form-control" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                            </div>
+                        )}
                         <div className="mb-3">
-                            <label htmlFor="email" className="form-label">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                className="form-control"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="tu@email.com"
-                            />
+                            <label className="form-label fw-bold">Email</label>
+                            <input type="email" className="form-control" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} required />
                         </div>
-
                         <div className="mb-3">
-                            <label htmlFor="phone" className="form-label">
-                                Teléfono
-                            </label>
-                            <input
-                                type="tel"
-                                className="form-control"
-                                id="phone"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                placeholder="+34 612 345 678"
-                            />
+                            <label className="form-label fw-bold">Teléfono</label>
+                            <input type="text" className="form-control" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} />
                         </div>
-
-                        <button type="submit" className="btn btn-primary">
-                            Guardar Cambios
+                        <button type="submit" className="btn btn-success px-4" disabled={loading}>
+                            {loading ? "Guardando..." : "Guardar cambios"}
                         </button>
                     </form>
                 </div>
             </div>
 
-            {/* Sección 2: Cambiar Contraseña */}
-            <div className="card">
-                <div className="card-header">
-                    <h5>Cambiar Contraseña</h5>
+            <div className="card shadow-sm border-0">
+                <div className="card-header bg-warning">
+                    <h5 className="mb-0">Seguridad y Contraseña</h5>
                 </div>
-                <div className="card-body">
+                <div className="card-body p-4">
                     <form onSubmit={handleChangePassword}>
                         <div className="mb-3">
-                            <label htmlFor="currentPassword" className="form-label">
-                                Contraseña Actual
-                            </label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                id="currentPassword"
-                                name="currentPassword"
-                                value={formData.currentPassword}
-                                onChange={handleChange}
-                            />
+                            <label className="form-label fw-bold">Contraseña Actual</label>
+                            <input type="password" password="currentPassword" className="form-control" value={formData.currentPassword} onChange={(e) => setFormData({...formData, currentPassword: e.target.value})} required />
                         </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="newPassword" className="form-label">
-                                Nueva Contraseña
-                            </label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                id="newPassword"
-                                name="newPassword"
-                                value={formData.newPassword}
-                                onChange={handleChange}
-                            />
+                        <div className="row">
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label fw-bold">Nueva Contraseña</label>
+                                <input type="password" password="newPassword" className="form-control" value={formData.newPassword} onChange={(e) => setFormData({...formData, newPassword: e.target.value})} required />
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label fw-bold">Confirmar Nueva Contraseña</label>
+                                <input type="password" password="confirmPassword" className="form-control" value={formData.confirmPassword} onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})} required />
+                            </div>
                         </div>
-
-                        <div className="mb-3">
-                            <label htmlFor="confirmPassword" className="form-label">
-                                Confirmar Contraseña
-                            </label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                id="confirmPassword"
-                                name="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
-                            />
-                        </div>
-
-                        <button type="submit" className="btn btn-warning">
-                            Cambiar Contraseña
-                        </button>
+                        <button type="submit" className="btn btn-primary px-4">Actualizar contraseña</button>
                     </form>
                 </div>
             </div>

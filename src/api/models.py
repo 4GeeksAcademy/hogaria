@@ -24,6 +24,8 @@ class User(db.Model):
     name: Mapped[str] = mapped_column(nullable=False)
     lastname: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
+    avatar: Mapped[str] = mapped_column(String(255), nullable=True, default="https://placehold.co/150")
+    
     opinions: Mapped[list["Opinion"]] = relationship(
         "Opinion", back_populates="author")
     history: Mapped[list["Service"]] = relationship(
@@ -33,7 +35,7 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password):
-                return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password_hash, password)
 
     def serialize(self):
         return {
@@ -42,21 +44,20 @@ class User(db.Model):
             "name": self.name,
             "lastname": self.lastname,
             "phone": self.phone,
+            "avatar": self.avatar,
             "opinions": [opinion.serialize() for opinion in self.opinions],
             "history": [service.serialize() for service in self.history]
         }
 
-
-
-
 class Company(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(
-        String(120), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(nullable=False)
     phone: Mapped[str] = mapped_column(nullable=False)
     rate: Mapped[float] = mapped_column(nullable=True)
+    logo: Mapped[str] = mapped_column(String(255), nullable=True, default="https://placehold.co/150")
+    
     opinions: Mapped[list["Opinion"]] = relationship(
         "Opinion", back_populates="company")
     services: Mapped[list["Service"]] = relationship(
@@ -75,6 +76,7 @@ class Company(db.Model):
             "name": self.name,
             "phone": self.phone,
             "rate": self.rate,
+            "logo": self.logo,
             "opinions": [opinion.serialize() for opinion in self.opinions],
             "services": [service.serialize() for service in self.services]
         }
@@ -127,6 +129,7 @@ class Service(db.Model):
             "id": self.id,
             "category": self.category.value,
             "name": self.name,
+            "city_id": self.city_id,
             "company_id": self.company_id,
             "direction": self.direction,
             "all_day": self.all_day,

@@ -27,7 +27,6 @@ export const UserProfile = () => {
 
         const fetchUserData = async () => {
             try {
-                // Obtener user_id del query string o del localStorage
                 const userId = new URLSearchParams(window.location.search).get('user_id') || localStorage.getItem('user_id');
                 const userType = new URLSearchParams(window.location.search).get('user_type') || localStorage.getItem('user_type');
                 console.log("User ID:", userId, "User Type:", userType);

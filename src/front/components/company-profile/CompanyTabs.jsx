@@ -16,7 +16,6 @@ const CompanyTabs = ({ activeTab, setActiveTab, companyId }) => {
   return (
     <div className="company-tabs-section">
       <div className="container mt-4">
-        {/* Tab Navigation */}
         <ul className="nav nav-tabs" role="tablist">
           {tabs.map((tab) => (
             <li className="nav-item" key={tab.id} role="presentation">
@@ -30,8 +29,6 @@ const CompanyTabs = ({ activeTab, setActiveTab, companyId }) => {
             </li>
           ))}
         </ul>
-
-        {/* Tab Content */}
         <div className="tab-content mt-4">
           {activeTab === "services" && <Services companyId={companyId} />}
           {activeTab === "gallery" && <Gallery companyId={companyId} />}

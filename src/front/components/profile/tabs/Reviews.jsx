@@ -56,7 +56,7 @@ const Reviews = ({ userId }) => {
                     <h6 className="card-title">⭐ {review.rating}/5</h6>
                     <p className="card-text">{review.comment}</p>
                   </div>
-                  <small className="text-muted">Empresa ID: {review.company_id}</small>
+                  <small className="text-muted">Empresa: {review.service_name}</small>
                 </div>
               </div>
             </div>

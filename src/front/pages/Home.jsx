@@ -78,6 +78,7 @@ const services = [
 
 
 export const Home = () => {
+  const token = localStorage.getItem("token")
   const navigate = useNavigate()
   return (
 
@@ -100,10 +101,14 @@ export const Home = () => {
               <button
                 className="service-btn"
                 onClick={() => {
-                  if (service.title === "Comercios") {
-                    navigate("/map");
+                  if (token){
+                    if (service.title === "Comercios") {
+                      navigate("/map");
+                    } else{
+                      navigate(`/search?service_id=${service.title.toLowerCase()}`);
+                    }
                   } else {
-                    navigate(`/search?service_id=${service.title.toLowerCase()}`);
+                    navigate("/login")
                   }
                 }}
               >
@@ -115,7 +120,13 @@ export const Home = () => {
         <div className="home-extra">
           <div
             className="extra-card"
-            onClick={() => navigate("/support")}
+            onClick={() => {
+              if (token){
+                navigate("/support")
+              }else {
+                navigate("/login")
+              }
+            }}
           >
             <div className="Atencion"><img src={atencion} alt="Atención al Cliente" /></div>
             <h3>Atención al Cliente</h3>
@@ -123,7 +134,13 @@ export const Home = () => {
 
           <div
             className="extra-card"
-            onClick={() => navigate("/review")}
+            onClick={() => {
+              if (token){
+                navigate("/review")
+              }else {
+                navigate("/login")
+              }
+            }}
           >
             <div className="valoracion"><img src={valoracion} alt="Valorar Servicio" /></div>
             <h3>Valorar Servicio</h3>

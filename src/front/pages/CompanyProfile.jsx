@@ -16,14 +16,17 @@ export const CompanyProfile = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    // const userType = localStorage.getItem("user_type");
+    const userType = localStorage.getItem("user_type");
 
-    // if (!token || userType !== "company") {
-    //   setIsAuthenticated(false);
-    //   setLoading(false);
-    //   return;
-    // }
-    console.log("estoy aca");
+    if (token) {
+      if (userType != "company"){
+        setLoading(false);
+        navigate("/profile");
+      }
+    }else {
+      setIsAuthenticated(false);
+      navigate("/login");
+    }
 
     setIsAuthenticated(true);
 

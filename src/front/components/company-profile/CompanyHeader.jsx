@@ -1,15 +1,66 @@
-const CompanyHeader = ({ company }) => {
+import React, { useRef } from "react";
+
+const CompanyHeader = ({ company, onLogoUpdate }) => {
+  const fileInputRef = useRef(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const token = localStorage.getItem('token');
+  const userId = localStorage.getItem("user_id");
+
+  const handleLogoClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("logo", file);
+
+    try {
+      const response = await fetch(`${backendUrl}/api/company/update-logo?user_id=${userId}`, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData, // Importante: No poner Content-Type manual para FormData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert("Logo actualizado");
+        if (onLogoUpdate) onLogoUpdate(data.logo_url);
+        window.location.reload(); // Recarga rápida para ver el cambio
+      }
+    } catch (error) {
+      alert("Error al subir el logo");
+    }
+  };
+
   return (
     <div className="company-header bg-light py-5">
       <div className="container">
         <div className="row align-items-center">
-
-          <div className="col-md-2 text-center">
-            <img
-              src={company?.logo || "https://placehold.co/150"}
-              alt={company?.name || "Empresa"}
-              className="company-logo rounded-circle"
-              style={{ width: "150px", height: "150px", objectFit: "cover", border: "4px solid #007bff" }}
+          <div className="col-md-2 text-center position-relative">
+            <div 
+              onClick={handleLogoClick} 
+              style={{ cursor: "pointer", position: "relative", display: "inline-block" }}
+              title="Cambiar logo"
+            >
+              <img
+                src={company?.logo || "https://placehold.co/150"}
+                alt={company?.name}
+                className="company-logo rounded-circle shadow"
+                style={{ width: "150px", height: "150px", objectFit: "cover", border: "4px solid #198754" }}
+              />
+              <div className="position-absolute bottom-0 end-0 bg-success text-white rounded-circle p-2 shadow-sm" style={{ width: "35px", height: "35px" }}>
+                <i className="fas fa-camera fa-sm"></i>
+              </div>
+            </div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              style={{ display: "none" }} 
+              accept="image/*" 
             />
           </div>
 
@@ -17,39 +68,18 @@ const CompanyHeader = ({ company }) => {
             <div className="d-flex align-items-center gap-2">
               <h1>{company?.name || "Empresa"}</h1>
               {company?.is_verified && (
-                <span className="badge bg-success" title="Empresa verificada">
+                <span className="badge bg-success">
                   <i className="fas fa-check-circle"></i> Verificado
                 </span>
               )}
             </div>
+            {/* ... resto de tu código igual ... */}
             <div className="mt-2">
-              {company?.categories?.map((category, index) => (
-              <span
-                key={index}
-                className="badge bg-success me-2"
-                style={{ cursor: "pointer", transition: "background-color 0.2s" }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = "#10b981"}
-                onMouseLeave={(e) => e.target.style.backgroundColor = ""}
-              >
-                {category}
-              </span>
+              {company?.categories?.map((cat, i) => (
+                <span key={i} className="badge bg-success me-2">{cat}</span>
               ))}
             </div>
-            <p className="text-muted">
-            </p>
-            <div className="rating mb-2">
-              <i className="fas fa-star text-warning"></i>
-              <span className="ms-2">
-                {company?.rate ? company.rate.toFixed(1) : "Sin calificación"}
-                ({company?.opinions?.length || 0} opiniones)
-              </span>
-            </div>
-            <p className="text-muted">
-              <i className="fas fa-phone"></i> {company?.phone}
-            </p>
-            {company?.description && (
-              <p className="mt-3">{company.description}</p>
-            )}
+            <p className="text-muted mt-2"><i className="fas fa-phone"></i> {company?.phone}</p>
           </div>
         </div>
       </div>

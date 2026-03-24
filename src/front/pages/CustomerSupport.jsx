@@ -1,20 +1,22 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import "./support.css"
 
 export const CustomerSupport = () => {
+  const navigate = useNavigate()
 
-  const [form,setForm] = useState({
-    name:"",
-    email:"",
-    message:""
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    message: ""
   })
 
-  const handleSubmit = (e)=>{
+  const handleSubmit = (e) => {
     e.preventDefault()
     console.log(form)
   }
 
-  return(
+  return (
 
     <div className="support-container">
 
@@ -49,22 +51,22 @@ export const CustomerSupport = () => {
         <input
           type="text"
           placeholder="Nombre"
-          onChange={(e)=>setForm({...form,name:e.target.value})}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
 
         <input
           type="email"
           placeholder="Correo"
-          onChange={(e)=>setForm({...form,email:e.target.value})}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
         />
 
         <textarea
           placeholder="Describe tu problema"
           rows="4"
-          onChange={(e)=>setForm({...form,message:e.target.value})}
+          onChange={(e) => setForm({ ...form, message: e.target.value })}
         />
 
-        <button>Enviar mensaje</button>
+        <button onClick={() => { alert("Mensaje enviado!"); navigate("/home") }}>Enviar mensaje</button>
 
       </form>
 
